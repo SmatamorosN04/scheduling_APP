@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/dist/client/link";
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
+import ServiceCard from "@/app/components/ServiceCard/ServiceCard";
+import ServiceForm from "@/app/components/ServiceForm/ServiceForm";
 
 
 
@@ -16,6 +18,8 @@ export default async function Home() {
             href="/clients/selectService"
             className='p-2 bg-white rounded-lg hover:cursor-pointer text-black' > Go to select Service</Link>
         <Footer/>
+
+
 
     </div>
   );
