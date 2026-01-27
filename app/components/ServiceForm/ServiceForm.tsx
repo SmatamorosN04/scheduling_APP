@@ -5,7 +5,7 @@ import {createAppointment} from "@/lib/actions";
 
 interface  ServiceFormProps {
     serviceTitle: string;
-    onBack: () => void;
+
 }
 
 export default function ServiceForm({serviceTitle}: ServiceFormProps){
@@ -18,7 +18,7 @@ export default function ServiceForm({serviceTitle}: ServiceFormProps){
                 <h2 className="text-2xl font-black text-black mb-4 uppercase">¡Recibido!</h2>
                 <p className="text-gray-500 mb-6">the booking has been saved</p>
                 <button
-                    onClick={() => window.location.href = "/clients/selectService"}
+
                     className="bg-black text-white px-6 py-2 rounded-full font-bold text-xs uppercase hover:cursor-pointer hover:bg-red-700 hover:scale-95 transition-transform"
                 >
                     Back to select Service
