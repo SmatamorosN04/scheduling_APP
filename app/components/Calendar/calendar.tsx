@@ -7,6 +7,7 @@ import CustomEvent from "@/app/components/Events/events";
 import moment from 'moment';
 import 'moment/locale/es';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+
 moment.locale('en', {
    week:{
        dow:1,
@@ -14,14 +15,9 @@ moment.locale('en', {
 });
 const localizer = momentLocalizer(moment);
 
-
-
-
-
-
 export default function ArielCalendar({ events }: { events: any[] }) {
     return (
-        <div className="h-200 w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-4">
+        <div className="h-[80vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4 overflow-x-auto">
             <Calendar
                 localizer={localizer}
                 events={events}
