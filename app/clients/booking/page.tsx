@@ -5,6 +5,8 @@ import ServiceForm from "@/app/components/ServiceForm/ServiceForm";
 import {useSearchParams} from "next/dist/client/components/navigation";
 import {Suspense} from "react";
 
+
+export const dynamic = 'force-dynamic';
 export default function Booking(){
     const searchParams = useSearchParams();
 
