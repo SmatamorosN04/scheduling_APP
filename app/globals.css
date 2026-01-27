@@ -166,6 +166,33 @@
     padding: 5px 0 !important;
   }
 }
+.rbc-agenda-view {
+  background-color: transparent !important;
+}
+
+.rbc-agenda-table {
+  border: none !important;
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.rbc-agenda-table thead > tr > th {
+  background-color: #f3f4f6;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: black;
+  padding: 10px;
+}
+
+.rbc-agenda-date-cell {
+  font-weight: bold;
+  color: black;
+}
+.rbc-calendar *, .rbc-calendar :before, .rbc-calendar :after {
+  color: black;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {

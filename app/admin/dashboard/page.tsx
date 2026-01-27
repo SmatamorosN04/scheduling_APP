@@ -3,6 +3,7 @@ import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
 import SideBar from "@/app/components/sidebar/infoContainer";
 import clientPromise from "@/lib/mongodb";
+import DetailContainer from "@/app/components/DetailContainer/DetailContainer";
 
 interface MongoDB{
     _id: number;
@@ -14,6 +15,7 @@ interface MongoDB{
 }
 
 export default async function  dashBoard() {
+
    let events:any= [];
 
    try {
@@ -46,9 +48,12 @@ export default async function  dashBoard() {
             <div className="flex flex-row-reverse min-h-screen relative w-screen items-center justify-center bg-[#F2EFDF]  font-sans ">
                 <Header/>
 
-                <ArielCalendar events={events}
+                <ArielCalendar
+                    events={events}
                 />
-               <SideBar/>
+                <SideBar>
+
+                </SideBar>
                 <Footer/>
 
             </div>

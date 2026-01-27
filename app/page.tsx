@@ -11,7 +11,7 @@ export default async function Home() {
         <Header/>
         <Link
         href="/admin/dashboard"
-       className='p-2 bg-white rounded-lg hover:cursor-pointer' > Go to DashBoard</Link>
+       className='p-2 bg-white rounded-lg hover:cursor-pointer text-black' > Go to DashBoard</Link>
         <Footer/>
     </div>
   );
