@@ -7,19 +7,27 @@ import {Suspense} from "react";
 
 
 export const dynamic = 'force-dynamic';
-export default function Booking(){
-    const searchParams = useSearchParams();
 
+
+function BookingContent() {
+    const searchParams = useSearchParams();
     const serviceName = searchParams.get("service") || "Servicio ";
+
+    return (
+        <ServiceForm
+            serviceTitle={serviceName}
+        />
+    );
+}
+
+export default function Booking(){
 
         return (
             <div className='h-screen items-center bg-[#F2EFDF] w-full flex flex-col '>
                 <Header/>
                 <main className='flex-1 flex items-center justify-center p-4'>
                    <Suspense fallback={<p className="text-sm font-bold animate-pulse">Cargando formulario...</p>}>
-                       <ServiceForm
-                           serviceTitle={serviceName}
-                       />
+                        <BookingContent />
                    </Suspense>
 
 
