@@ -4,6 +4,7 @@ import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
 import ServiceCard from "@/app/components/ServiceCard/ServiceCard";
 import ServiceForm from "@/app/components/ServiceForm/ServiceForm";
+import BackButton from "@/app/components/BackButton/BackButton";
 
 
 
@@ -17,8 +18,8 @@ export default async function Home() {
         <Link
             href="/clients/selectService"
             className='p-2 bg-white rounded-lg hover:cursor-pointer text-black' > Go to select Service</Link>
-        <Footer/>
 
+        <Footer/>
 
 
     </div>

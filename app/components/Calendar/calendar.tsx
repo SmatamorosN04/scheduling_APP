@@ -51,6 +51,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
             <Calendar
                 localizer={localizer}
                 events={events}
+                culture='en'
                 startAccessor="start"
                 endAccessor="end"
                 step={60}
