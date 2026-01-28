@@ -1,5 +1,6 @@
 'use server'
 import clientPromise from '@/lib/mongodb'
+import {SERVICE_COLORS} from "@/lib/constants";
 
 export async function getAppointments() {
     try {
@@ -28,20 +29,27 @@ export async function  createAppointment(formData: FormData){
     const name = formData.get('name');
     const address = formData.get('address');
     const phone = formData.get('phone');
+    // @ts-ignore
+    const color = SERVICE_COLORS[service] || SERVICE_COLORS['Instalation'];
 
     const rawSelectedDate = formData.get('selectedDate') as string;
     const startTimeStr = formData.get('startTime') as string;
-    const endTimeStr = formData.get('endTime') as string;
+    const finishTimeStr = formData.get('endTime') as string;
 
 
     try{
         const startDate = new Date(rawSelectedDate);
-        const [startHours] = startTimeStr.split(':');
-        startDate.setHours(parseInt(startHours), 0, 0, 0);
+        const startH = parseInt(startTimeStr)
+        startDate.setHours(startH, 0, 0, 0);
 
         const finishDate = new Date(rawSelectedDate);
-        const [finishHours] = endTimeStr.split(':');
-        finishDate.setHours(parseInt(finishHours), 0, 0, 0);
+        let endH = parseInt(finishTimeStr);
+
+        if (endH <= startH){
+            endH = startH + 1;
+        }
+
+        finishDate.setHours(endH,0,0,0);
 
 
         await db.collection('appointments').insertOne({
@@ -51,7 +59,7 @@ export async function  createAppointment(formData: FormData){
                 clientName: name,
                 direction: address,
                 phone_number: phone,
-
+                color_hex: color
         });
     } catch (error){
         console.error("error saving", error);

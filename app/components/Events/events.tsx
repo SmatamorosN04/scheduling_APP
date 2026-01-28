@@ -13,7 +13,7 @@ export default function CustomEvent ({ event }: {event:any})  {
                 <p className=" text-[11px] md:text-xs leading-tight uppercase truncate text-black">
                     {event.clientName || 'without name'}
                 </p>
-                <p className=" text-[11px] md:text-xs leading-tight uppercase truncate text-black">
+                <p className=" text-[11px] md:text-xs leading-tight uppercase truncate wrap-break-word text-black">
                     {event.direction || 'without direction'}
                 </p>
             </div>

@@ -1,6 +1,7 @@
 'use client';
 import React, {useState} from 'react';
 import {createAppointment} from "@/lib/actions";
+import Link from "next/dist/client/link";
 
 
 interface  ServiceFormProps {
@@ -12,8 +13,8 @@ interface  ServiceFormProps {
 export default function ServiceForm({serviceTitle, selectedDate, endDate}: ServiceFormProps){
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const startTimeDisplay = selectedDate?.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-    const endTimeDisplay = endDate?.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+    const startTimeDisplay = selectedDate ?  selectedDate.getHours(): '0';
+    const endTimeDisplay =endDate? endDate.getHours() : "0";
 
 
     if(isSubmitted){
@@ -22,12 +23,12 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
                 <div className="text-5xl text-black mb-4">check</div>
                 <h2 className="text-2xl font-black text-black mb-4 uppercase">¡Recibido!</h2>
                 <p className="text-gray-500 mb-6">the booking has been saved</p>
-                <button
-
+                <Link
+                    href="/"
                     className="bg-black text-white px-6 py-2 rounded-full font-bold text-xs uppercase hover:cursor-pointer hover:bg-red-700 hover:scale-95 transition-transform"
                 >
                     Back to select Service
-                </button>
+                </Link>
             </div>
         );
     }
@@ -48,7 +49,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
                 <span className="text-black font-black text-xl uppercase tracking-tighter">{serviceTitle}</span>
                 {selectedDate && (
                     <p className="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-widest">
-                        Selected Date: {selectedDate.toLocaleDateString('es-ES')}
+                        Selected Date: {selectedDate.toLocaleDateString('en')}
                     </p>
                 )}
             </div>

@@ -67,7 +67,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                     agenda: true
                 }}
 
-                eventPropGetter={() => ({ className: isClientView ? "!bg-gray-400 !rounded-lg !text-white" : "!bg-transparent !border-0" })}
+                eventPropGetter={() => ({ className: isClientView ? "!bg-gray-400 !rounded-lg !text-white h-full" : "!bg-transparent !border-0" })}
 
                 titleAccessor={isClientView ? ()=> "Busy": "title"}
 
@@ -93,12 +93,12 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 min={new Date(0, 0, 0, 8, 0, 0)}
                 max={new Date(0, 0, 0, 18, 0, 0)}
                 messages={{
-                    next: "Sig",
-                    previous: "Ant",
-                    today: "Hoy",
-                    month: "Mes",
-                    week: "Semana",
-                    day: "Día",
+                    next: "Next",
+                    previous: "Prev",
+                    today: "Today",
+                    month: "Month",
+                    week: "Week",
+                    day: "Day",
                     agenda: "Agenda"
                 }}
             />

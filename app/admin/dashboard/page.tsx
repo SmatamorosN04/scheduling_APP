@@ -30,8 +30,8 @@ export default async function  dashBoard() {
            return {
                id: ev._id.toString(),
                title: ev.title || "Service without name ",
-               start: new Date(`${eventDate}T${ev.start}:00`),
-               end: new Date(`${eventDate}T${ev.finish}:00`),
+               start: new Date(ev.start),
+               end: new Date(ev.finish),
                clientName: ev.clientName,
                direction: ev.direction,
                resource: {
