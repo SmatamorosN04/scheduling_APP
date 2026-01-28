@@ -14,7 +14,7 @@ export async function GET(request: Request) {
         const db = client.db(process.env.DB_NAME);
 
         const appointments = await db
-            .collection("Appointments")
+            .collection("appointments")
             .find({ date: date })
             .toArray();
 

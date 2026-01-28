@@ -29,14 +29,14 @@ export default async function  dashBoard() {
 
            return {
                id: ev._id.toString(),
-               title: ev.service || "Service without name ",
+               title: ev.title || "Service without name ",
                start: new Date(`${eventDate}T${ev.start}:00`),
                end: new Date(`${eventDate}T${ev.finish}:00`),
+               clientName: ev.clientName,
+               direction: ev.direction,
                resource: {
-                   color_hex: ev.color_hex || (ev.service === 'mantenimiento' ? '#F28D35' : '#00C0E8'),
-                   serviceType: ev.service,
-                   clientName: ev.clientName,
-                   direction: ev.direction,
+                   color_hex: ev.color_hex || (ev.service === 'maintenance' ? '#F28D35' : '#00C0E8'),
+
                },
            };
        })

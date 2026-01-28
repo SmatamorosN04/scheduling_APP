@@ -11,10 +11,10 @@ export default function CustomEvent ({ event }: {event:any})  {
                     {event.title}
                 </h1>
                 <p className=" text-[11px] md:text-xs leading-tight uppercase truncate text-black">
-                    {event.resource.clientName}
+                    {event.clientName || 'without name'}
                 </p>
                 <p className=" text-[11px] md:text-xs leading-tight uppercase truncate text-black">
-                    {event.resource.direction}
+                    {event.direction || 'without direction'}
                 </p>
             </div>
             <div className="flex justify-evenly items-center mt-1">

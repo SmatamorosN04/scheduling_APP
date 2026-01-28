@@ -21,7 +21,7 @@ export default function SelectService(){
                     'minimizes future maintenance issues.'}/>
             </Link>
 
-            <Link href={`/clients/booking?service=${encodeURIComponent('Intalation')}`}>
+            <Link href={`/clients/booking?service=${encodeURIComponent('Instalation')}`}>
                 <ServiceCard image={'/instalation.png'} title={'Instalation'} description={`During the installation phase, an air conditioning installer is responsible for positioning
              and securing the indoor and outdoor units according to the site analysis. This involves mounting brackets, connecting refrigerant lines, and ensuring proper drainage 
              to prevent leaks. The installer also integrates the electrical wiring, verifies that the power supply meets safety standards, and configures the thermostat or control
