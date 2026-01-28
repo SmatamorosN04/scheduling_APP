@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import clientPromise from "@/lib/mongodb";
 import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from "bcryptjs";
 
 
 const handler = NextAuth({ providers: [
@@ -20,12 +21,17 @@ const handler = NextAuth({ providers: [
                 username: credentials?.username
             });
 
-            if(user && credentials?.password === user.password){
-                return{
-                    id: user._id.toString(),
-                    name: user.usernname,
-                };
-            }
+            if(user ){
+                const isPasswordCorrect = await bcrypt.compare(
+                    credentials.password,
+                    user.password
+                );
+                if (isPasswordCorrect){
+                    return {id: user._id.toString(),name: user.username}
+                }
+
+                }
+
             return null
         }
     })
