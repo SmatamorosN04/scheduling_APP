@@ -45,7 +45,7 @@ export default function LoginAdmin(){
                         required
                         type='text'
                         placeholder='Ariel (really its not the user)'
-                        className='w-full bg-gray-500 border-2 border-transparent text-black focus:border-black p-5 rounded-lg outline-none transition-all font-medium'
+                        className='w-full bg-gray-300/50 border-2 border-transparent text-black focus:border-black p-5 rounded-lg outline-none transition-all font-medium'
                         onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
@@ -55,16 +55,16 @@ export default function LoginAdmin(){
                             required
                             type='password'
                             placeholder='12345 (really its not the password)'
-                            className='w-full bg-gray-500 border-2 border-transparent text-black focus:border-black p-5 rounded-lg outline-none transition-all font-medium'
+                            className='w-full bg-gray-300/50 border-2 border-transparent text-black focus:border-black p-5 rounded-lg outline-none transition-all font-medium'
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
                     {error && (
                     <div className='bg-white/50 border border-red-700 text-red-600  h-min p-1 '>
-                        <p className='text-lg font-black '> error, access denied </p>
+                        <p className='text-lg font-semibold text-center '> error, access denied </p>
                     </div>
                 )}
-                    <button type='submit' className='p-3 justify-self-center bg-black w-auto rounded-lg h-auto text-white '>Enter</button>
+                    <button type='submit' className='p-3 justify-self-center bg-black w-auto rounded-lg h-auto text-white hover:cursor-pointer hover:-translate-y-1 hover:scale-110 hover:bg-green-500'>Enter</button>
                 </form>
 
 
