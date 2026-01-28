@@ -54,7 +54,7 @@ function BookingContent() {
            <h2>
                {step === 1 ? "Select Date for get a booking" : `Complete the booking: ${serviceName}`}
            </h2>
-           {step ===1? (
+           {step === 1 ? (
                <div>
                    <ArielCalendar events={events}
                    isClientView={true}

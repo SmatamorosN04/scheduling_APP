@@ -4,7 +4,7 @@ export default function CustomEvent ({ event }: {event:any})  {
     return (
         <div
             className="h-full cursor-pointer active:scale-95 transition-transform w-full p-2 rounded-lg shadow-md flex flex-col justify-start border-l-4 border-black/30 transition-all hover:scale-[1.02]"
-            style={{ backgroundColor: event.resource?.color_hex }}
+            style={{ backgroundColor: event.color_hex }}
         >
             <div className="overflow-hidden">
                 <h1 className="font-bold text-[11px] md:text-xs leading-tight uppercase truncate text-black">

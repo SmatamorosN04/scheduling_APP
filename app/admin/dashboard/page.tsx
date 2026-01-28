@@ -1,63 +1,62 @@
+export const dynamic = 'force-dynamic'; // SOLUCIÓN AL PROBLEMA DE ACTUALIZACIÓN
+
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
+import clientPromise from "@/lib/mongodb";
 import ArielCalendar from "@/app/components/Calendar/calendar";
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
 import SideBar from "@/app/components/sidebar/infoContainer";
-import clientPromise from "@/lib/mongodb";
-import DetailContainer from "@/app/components/DetailContainer/DetailContainer";
 
-interface MongoDB{
-    _id: number;
-    service: string,
-    date: string;
-    start: string;
-    finish: string;
-    color_hex?: string;
+// Definimos la interfaz para evitar errores de tipo
+interface Appointment {
+    id: string;
+    title: string;
+    start: Date;
+    end: Date;
+    clientName: string;
+    service: string;
+    color_hex: string;
 }
 
-export default async function  dashBoard() {
+export default async function DashBoard() {
+    let events: Appointment[] = [];
 
-   let events:any= [];
+    try {
+        const client = await clientPromise;
+        const db = client.db("scheduling_App");
 
-   try {
-       const client = await clientPromise;
-       const db = client.db("scheduling_App")
+        const rawEvents = await db.collection('appointments').find({}).toArray();
 
-       const rawEvents = await db.collection('appointments').find({}).toArray();
+        events = rawEvents.map((ev: any) => {
+            return {
+                id: ev._id.toString(),
+                title: ev.title || "Servicio sin nombre",
+                start: new Date(ev.start),
+                end: new Date(ev.finish),
+                clientName: ev.clientName || "Cliente anónimo",
+                service: ev.service,
+                color_hex: ev.color_hex || (ev.service === 'maintenance' ? '#F28D35' : '#00C0E8'),
+            };
+        });
+    } catch (error) {
+        console.error('Error cargando eventos:', error);
+    }
 
-       events = rawEvents.map((ev: any) => {
-           const eventDate = ev.date || ev.DATE;
+    return (
+        <div className="flex flex-col min-h-screen bg-[#F2EFDF] font-sans">
+            <Header />
 
-           return {
-               id: ev._id.toString(),
-               title: ev.title || "Service without name ",
-               start: new Date(ev.start),
-               end: new Date(ev.finish),
-               clientName: ev.clientName,
-               direction: ev.direction,
-               resource: {
-                   color_hex: ev.color_hex || (ev.service === 'maintenance' ? '#F28D35' : '#00C0E8'),
-
-               },
-           };
-       })
-   } catch (error){
-       console.error('not loaded events', error)
-   }
-
-    return(
-            <div className="flex flex-row-reverse min-h-screen relative w-screen items-center justify-center bg-[#F2EFDF]  font-sans ">
-                <Header/>
-
-                <ArielCalendar
-                    events={events}
-                />
-                <SideBar>
-
-                </SideBar>
-                <Footer/>
-
-            </div>
-        )
+            <main className="flex-1 flex flex-col md:flex-row-reverse items-start justify-center p-4 gap-6">
+                {/* El Calendario con los datos reales */}
+                <div className="w-full md:w-3/4 bg-white p-6 rounded-[32px] shadow-sm border border-black/5">
+                    <ArielCalendar events={events} />
+                </div>
 
 
-};
+            </main>
+
+            <Footer />
+        </div>
+    );
+}

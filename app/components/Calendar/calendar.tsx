@@ -20,7 +20,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
     const [isMobile, setIsMobile] = useState(false);
     const [date, setDate] = useState(new Date());
 
-    useEffect(() => {
+   /* useEffect(() => {
         const checkMobile = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
@@ -30,9 +30,9 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
         checkMobile();
         window.addEventListener("resize", checkMobile);
         return () => window.removeEventListener("resize", checkMobile);
-    }, [isClientView]);
+    }, [isClientView]);*/
 
-    const handleSelectSlot = (slotInfo: any) => {
+    /*const handleSelectSlot = (slotInfo: any) => {
         if(!isClientView) return
 
         if(currentView === Views.MONTH){
@@ -44,7 +44,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 onDateSelect(slotInfo.start, slotInfo.end);
             }
         }
-    }
+    }*/
 
     return (
         <div className="h-[80vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4">
