@@ -24,66 +24,59 @@ export async function getAppointments() {
         return [];
     }
 }
-
-export async function  createAppointment(formData: FormData){
+export async function createAppointment(formData: FormData) {
     const client = await clientPromise;
+    const db = client.db('scheduling_App');
 
-    const db = client.db('scheduling_App')
-    const service = formData.get('service');
+    const service = formData.get('service') as string;
     const name = formData.get('name');
     const address = formData.get('address');
     const phone = formData.get('phone');
     // @ts-ignore
     const color = SERVICE_COLORS[service] || SERVICE_COLORS['Instalation'];
 
-    const rawSelectedDate = formData.get('selectedDate') as string;
-    const startTimeStr = formData.get('startTime') as string;
+    const rawSelectedDate = formData.get('selectedDate') as string; // Ej: "2026-01-31"
+    const startTimeStr = formData.get('startTime') as string;      // Ej: "09"
     const finishTimeStr = formData.get('endTime') as string;
 
-
-    try{
-
+    try {
         const existingOverlap = await db.collection('appointments').findOne({
             date: rawSelectedDate,
             start: startTimeStr,
-            finish: finishTimeStr
         });
-        if (existingOverlap){
-            return {
-                error: "This hour is reserved by another client"
-            }
+
+        if (existingOverlap) {
+            return { error: "This hour is reserved by another client" };
         }
 
-        const startDate = new Date(rawSelectedDate);
-        const startH = parseInt(startTimeStr)
-        startDate.setHours(startH, 0, 0, 0);
 
-        const finishDate = new Date(rawSelectedDate);
-        let endH = parseInt(finishTimeStr);
+        const startH = startTimeStr.padStart(2, '0');
+        let endHInt = parseInt(finishTimeStr);
+        if (endHInt <= parseInt(startTimeStr)) endHInt = parseInt(startTimeStr) + 1;
+        const endH = endHInt.toString().padStart(2, '0');
 
-        if (endH <= startH){
-            endH = startH + 1;
-        }
-
-        finishDate.setHours(endH,0,0,0);
-
-
+        const startDate = new Date(`${rawSelectedDate}T${startH}:00:00`);
+        const finishDate = new Date(`${rawSelectedDate}T${endH}:00:00`);
 
         await db.collection('appointments').insertOne({
             title: service,
-            start: startDate,
-            finish: finishDate,
-                clientName: name,
-                direction: address,
-                phone_number: phone,
-                color_hex: color
+            date: rawSelectedDate,
+            start: startTimeStr,
+            finish: finishTimeStr,
+            start_date_obj: startDate,
+            end_date_obj: finishDate,
+            clientName: name,
+            direction: address,
+            phone_number: phone,
+            color_hex: color
         });
-    } catch (error){
+
+        return { success: true };
+    } catch (error) {
         console.error("error saving", error);
-        return{ message: "error saving"}
+        return { message: "error saving" };
     }
 }
-
 export async function deleteAppointment(id: string){
 try{
     const client = await clientPromise;
