@@ -8,18 +8,30 @@ export default function Header() {
     const isAdmin = pathname.startsWith('/admin');
 
     return (
-        <div className="w-full h-14 bg-[#F2A950] absolute top-0 left-0 flex items-center justify-between px-6 z-50 shadow-md rounded-b-[20px]">
+        <div className="w-full h-16 bg-[#F2A950] sticky top-0 left-0 flex items-center justify-between px-6 z-[100] shadow-lg rounded-b-[32px] border-b border-black/5">
             <div className="flex-1">
-                <BackButton redirection={'/'} />
+                <div className="hover:scale-105 transition-transform active:scale-95 inline-block">
+                    <BackButton redirection={'/'} />
+                </div>
             </div>
 
             <div className="flex-1 flex justify-end">
                 {isAdmin && (
                     <button
                         onClick={() => signOut({ callbackUrl: '/' })}
-                        className="bg-white/20 hover:bg-white/40 text-white text-[9px] font-black uppercase px-3 py-1 rounded-lg backdrop-blur-sm transition-all border border-white/30"
+                        className="group relative flex items-center gap-2 bg-black/10 hover:bg-black text-black hover:text-white px-5 py-2 rounded-2xl transition-all duration-300 border border-black/5 backdrop-blur-md shadow-sm"
                     >
-                        Salir
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                    Logout
+                </span>
+                        <svg
+                            className="w-3 h-3 group-hover:translate-x-1 transition-transform"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                        </svg>
                     </button>
                 )}
             </div>
