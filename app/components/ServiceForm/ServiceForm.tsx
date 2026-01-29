@@ -20,7 +20,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
     if(isSubmitted){
         return (
             <div className="text-center p-10 bg-white rounded-[32px] shadow-xl">
-                <h2 className="text-2xl font-black text-black mb-4 uppercase">¡Recibido!</h2>
+                <h2 className="text-2xl font-black text-black mb-4 uppercase">¡Received!</h2>
                 <p className="text-gray-500 mb-6">the booking has been saved</p>
                 <Link
                     href="/"
