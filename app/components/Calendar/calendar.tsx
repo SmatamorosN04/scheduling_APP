@@ -21,7 +21,6 @@ moment.updateLocale('es-ni', {
 });
 
 export default function ArielCalendar({ events, isClientView = false, onDateSelect, onSelectEvent }: CalendarProps) {
-    // Inicializamos la vista según el tamaño de la pantalla para evitar el salto visual
     const [currentView, setCurrentView] = useState<any>(
         isClientView ? Views.MONTH : (typeof window !== 'undefined' && window.innerWidth < 768 ? Views.AGENDA : Views.WEEK)
     );
@@ -33,7 +32,6 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
 
-            // Si detecta móvil y estamos en una vista prohibida, saltamos a Agenda
             if (mobile && !isClientView && (currentView === Views.MONTH || currentView === Views.WEEK)) {
                 setCurrentView(Views.AGENDA);
             }
