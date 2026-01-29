@@ -1,165 +1,174 @@
 'use server'
 import clientPromise from '@/lib/mongodb'
-import { SERVICE_COLORS } from "@/lib/constants";
-import { ObjectId } from "mongodb";
-import { revalidatePath } from "next/cache";
-
-// Helper para limpiar la fecha y evitar que JS le aplique desfases UTC
-// Convierte "2026-01-31" y "09" en un objeto Date local real
-const createLocalInterval = (dateStr: string, startH: string, endH: string) => {
-    const sH = parseInt(startH);
-    let eH = parseInt(endH);
-    if (eH <= sH) eH = sH + 1;
-
-    // Al usar el formato T00:00:00 sin la 'Z', JS lo interpreta como hora local del sistema
-    const start = new Date(`${dateStr}T${sH.toString().padStart(2, '0')}:00:00`);
-    const end = new Date(`${dateStr}T${eH.toString().padStart(2, '0')}:00:00`);
-
-    return { start, end, sH, eH };
-};
-
+import {SERVICE_COLORS} from "@/lib/constants";
+import {ObjectId} from "bson";
+import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
+import {any} from "prop-types";
+import {start} from "node:repl";
 export async function getAppointments() {
     try {
         const client = await clientPromise;
         const db = client.db('scheduling_App');
+
+        // Traemos todos, pero filtramos los que tengan el formato nuevo
         const appointments = await db.collection('appointments').find({}).toArray();
 
-        return appointments.map(app => ({
-            id: app._id.toString(),
-            title: app.title,
-            start: new Date(app.start), // MongoDB guardará el Date, pero al traerlo será consistente
-            end: new Date(app.finish),
-            clientName: app.clientName,
-            direction: app.direction,
-            phone_number: app.phone_number,
-            color_hex: app.color_hex
-        }));
+        return appointments.map(app => {
+
+            const startISO = `${app.date}T${app.start}:00`;
+            const endISO = `${app.date}T${app.finish}:00`;
+
+            return {
+                id: app._id.toString(),
+                title: app.title,
+                start: new Date(startISO),
+                end: new Date(endISO),
+                clientName: app.clientName,
+                direction: app.direction,
+                phone_number: app.phone_number,
+                color_hex: app.color_hex,
+                rawDate: app.date,
+                rawStart: app.start,
+                rawFinish: app.finish
+            };
+        });
     } catch (error) {
-        console.error("Error fetching appointments:", error);
+        console.error("Error fetching:", error);
         return [];
     }
 }
 
 export async function createAppointment(formData: FormData) {
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+
+    // Limpiamos la fecha para que sea solo "YYYY-MM-DD" como el dummy
+    const rawDate = formData.get('selectedDate') as string;
+    const cleanDate = rawDate.split('T')[0];
+
+    const startTimeStr = formData.get('startTime') as string;
+    const finishTimeStr = formData.get('endTime') as string;
+
+    const startFormatted = `${startTimeStr.padStart(2, '0')}:00`;
+    const finishFormatted = `${finishTimeStr.padStart(2, '0')}:00`;
+
     try {
-        const client = await clientPromise;
-        const db = client.db('scheduling_App');
+        const sH = parseInt(startTimeStr);
+        const eH = parseInt(finishTimeStr);
 
-        const rawSelectedDate = formData.get('selectedDate') as string;
-        const startTimeStr = formData.get('startTime') as string;
-        const finishTimeStr = formData.get('endTime') as string;
-
-        const { start, end, sH, eH } = createLocalInterval(rawSelectedDate, startTimeStr, finishTimeStr);
-
-        /**
-         * 🛡️ OVERLAP SHIELD PRO:
-         * Una cita choca si: (Nueva_Inicio < Existente_Fin) Y (Nueva_Fin > Existente_Inicio)
-         */
-        const existingOverlap = await db.collection('appointments').findOne({
-            date: rawSelectedDate,
+        // El Shield ahora usa el campo 'date' limpio
+        const overlapping = await db.collection('appointments').findOne({
+            date: cleanDate,
             $and: [
                 { start_num: { $lt: eH } },
                 { finish_num: { $gt: sH } }
             ]
         });
 
-        if (existingOverlap) {
-            return { error: "This time slot overlaps with an existing appointment" };
-        }
-
-        const service = formData.get('service') as string;
-        const color = SERVICE_COLORS[service] || SERVICE_COLORS['Instalation'];
+        if (overlapping) return { error: "Horario ocupado" };
 
         await db.collection('appointments').insertOne({
-            title: service,
-            start: start,          // Date Object (Local ISO)
-            finish: end,           // Date Object (Local ISO)
-            start_num: sH,         // Guardamos números para validación rápida
-            finish_num: eH,
-            date: rawSelectedDate, // String puro "YYYY-MM-DD"
+            date: cleanDate,           // RESULTADO: "2026-01-31" (Igual al dummy)
+            start: startFormatted,    // RESULTADO: "12:00"
+            finish: finishFormatted,  // RESULTADO: "15:00"
+            // El timestamp debe llevar la fecha completa para que sea útil
+            timestamp_start: `${cleanDate}T${startFormatted}:00Z`,
             clientName: formData.get('name'),
             direction: formData.get('address'),
+            title: formData.get('service'),
             phone_number: formData.get('phone'),
-            color_hex: color
+            color_hex: SERVICE_COLORS[formData.get('service') as string] || "#001a57",
+            start_num: sH,
+            finish_num: eH
         });
 
         revalidatePath('/dashboard');
         return { success: true };
-    } catch (error) {
-        console.error("error saving", error);
-        return { error: "Error saving appointment" };
-    }
+    } catch (e) { return { error: "Error" }; }
 }
 
-export async function deleteAppointment(id: string) {
-    try {
-        const client = await clientPromise;
-        const db = client.db('scheduling_App');
+export async function deleteAppointment(id: string){
+try{
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
 
-        const result = await db.collection('appointments').deleteOne({
-            _id: new ObjectId(id)
-        });
+    const eventToDelete = await db.collection('appointments').deleteOne({
+        _id: new ObjectId(id)
+    });
 
-        if (result.deletedCount === 1) {
-            revalidatePath('/dashboard');
-            return { success: true, message: "Event deleted correctly" };
+    if (eventToDelete.deletedCount === 1){
+        revalidatePath('/admin')
+        return {
+            success: true, message: "Event deleted correctly"
         }
-        return { error: true, message: "Event not found" };
-    } catch (error) {
-        console.error('Error Deleting this Appointment', error);
-        return { error: "Server error" };
+    } else {
+        return {
+            error: true, message: "Event not Found"
+        }
+    }
+
+}catch (error){
+    console.error('Error Deleting this Appointment', error);
     }
 }
 
-export async function updateAppointment(id: string, formData: FormData) {
+export async function updateAppointment(id: string, formData: FormData){
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+    const service = formData.get('service');
+    const name = formData.get('name');
+    const address = formData.get('address');
+    const phone = formData.get('phone');
+
+    const rawSelectedDate = formData.get('selectedDate') as string;
+    const startTimeStr = formData.get('startTime') as string;
+    const finishTimeStr = formData.get('endTime') as string;
+
     try {
-        const client = await clientPromise;
-        const db = client.db('scheduling_App');
-
-        const rawSelectedDate = formData.get('selectedDate') as string;
-        const startTimeStr = formData.get('startTime') as string;
-        const finishTimeStr = formData.get('endTime') as string;
-
-        const { start, end, sH, eH } = createLocalInterval(rawSelectedDate, startTimeStr, finishTimeStr);
-
-        // Shield en Update ignorando el ID actual
         const existingOverlap = await db.collection('appointments').findOne({
             date: rawSelectedDate,
-            _id: { $ne: new ObjectId(id) },
-            $and: [
-                { start_num: { $lt: eH } },
-                { finish_num: { $gt: sH } }
-            ]
+            start: startTimeStr,
+            finish: finishTimeStr,
+            _id: { $ne: new ObjectId(id)}
         });
 
-        if (existingOverlap) {
-            return { error: "This hour is reserved by another client" };
+        if (existingOverlap){
+            return { error: "This hour is reserved by another client" }
         }
+        const startDate = new Date(rawSelectedDate);
+        const startH = parseInt(startTimeStr);
+        startDate.setHours(startH, 0, 0, 0);
 
-        const service = formData.get('service') as string;
+        const finishDate = new Date(rawSelectedDate);
+        let endH = parseInt(finishTimeStr);
 
-        await db.collection('appointments').updateOne(
-            { _id: new ObjectId(id) },
+        if (endH <= startH){
+            endH = startH + 1;
+        }
+        finishDate.setHours(endH, 0, 0, 0)
+
+        await db.collection('appointment').updateOne(
+            {
+                _id: new ObjectId(id)
+            },
             {
                 $set: {
                     title: service,
-                    start: start,
-                    finish: end,
-                    start_num: sH,
-                    finish_num: eH,
-                    clientName: formData.get('name'),
-                    direction: formData.get('address'),
-                    phone_number: formData.get('phone'),
-                    date: rawSelectedDate,
-                    color_hex: SERVICE_COLORS[service] || SERVICE_COLORS['Instalation']
+                    start: startDate,
+                    finish: finishDate,
+                    clientName: name,
+                    direction: address,
+                    phone_number: phone,
+                    date: rawSelectedDate
                 }
             }
         );
+        revalidatePath('/admin')
 
-        revalidatePath('/dashboard');
-        return { success: true };
-    } catch (error) {
+
+
+    }catch(error){
         console.error('Error Updating the booking', error);
-        return { error: "Booking not updated" };
+        return { error: "Booking not updated"}
     }
 }
