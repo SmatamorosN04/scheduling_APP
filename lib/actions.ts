@@ -10,7 +10,6 @@ export async function getAppointments() {
         const client = await clientPromise;
         const db = client.db('scheduling_App');
 
-        // Traemos todos, pero filtramos los que tengan el formato nuevo
         const appointments = await db.collection('appointments').find({}).toArray();
 
         return appointments.map(app => {
@@ -42,7 +41,6 @@ export async function createAppointment(formData: FormData) {
     const client = await clientPromise;
     const db = client.db('scheduling_App');
 
-    // Limpiamos la fecha para que sea solo "YYYY-MM-DD" como el dummy
     const rawDate = formData.get('selectedDate') as string;
     const cleanDate = rawDate.split('T')[0];
 
@@ -56,7 +54,6 @@ export async function createAppointment(formData: FormData) {
         const sH = parseInt(startTimeStr);
         const eH = parseInt(finishTimeStr);
 
-        // El Shield ahora usa el campo 'date' limpio
         const overlapping = await db.collection('appointments').findOne({
             date: cleanDate,
             $and: [
@@ -68,16 +65,16 @@ export async function createAppointment(formData: FormData) {
         if (overlapping) return { error: "Horario ocupado" };
 
         await db.collection('appointments').insertOne({
-            date: cleanDate,           // RESULTADO: "2026-01-31" (Igual al dummy)
-            start: startFormatted,    // RESULTADO: "12:00"
-            finish: finishFormatted,  // RESULTADO: "15:00"
-            // El timestamp debe llevar la fecha completa para que sea útil
-            timestamp_start: `${cleanDate}T${startFormatted}:00Z`,
+            date: cleanDate,
+            start: startFormatted,
+            finish: finishFormatted,
+
+            timestamp_start: `${cleanDate}T${startFormatted}:00`,
             clientName: formData.get('name'),
             direction: formData.get('address'),
             title: formData.get('service'),
             phone_number: formData.get('phone'),
-            color_hex: SERVICE_COLORS[formData.get('service') as string] || "#001a57",
+            color_hex: SERVICE_COLORS[formData.get('service') as string] || "#39b82a",
             start_num: sH,
             finish_num: eH
         });
