@@ -10,6 +10,7 @@ interface CalendarProps {
     events: any[];
     isClientView?: boolean;
     onDateSelect?: (date: Date, end: Date) => void;
+    onSelectEvent?: (event: any) => void;
 }
 
 moment.tz.setDefault('America/Managua');
@@ -19,7 +20,7 @@ moment.updateLocale('es-ni', {
     week: { dow: 1, doy: 4 }
 });
 
-export default function ArielCalendar({ events, isClientView = false, onDateSelect }: CalendarProps) {
+export default function ArielCalendar({ events, isClientView = false, onDateSelect, onSelectEvent }: CalendarProps) {
     // Inicializamos la vista según el tamaño de la pantalla para evitar el salto visual
     const [currentView, setCurrentView] = useState<any>(
         isClientView ? Views.MONTH : (typeof window !== 'undefined' && window.innerWidth < 768 ? Views.AGENDA : Views.WEEK)
@@ -53,7 +54,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
         };
 
     return (
-        <div className="h-[80vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4">
+        <div className="h-[70vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4">
             <Calendar
                 localizer={localizer}
                 events={events}
@@ -67,8 +68,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 view={currentView}
                 onView={(view) => setCurrentView(view)}
                 dayLayoutAlgorithm="no-overlap"
-
-                // Usamos la configuración que filtra las vistas
+                onSelectEvent={(event) => onSelectEvent && onSelectEvent(event)}
                 views={availableViews}
 
                 eventPropGetter={() => ({
