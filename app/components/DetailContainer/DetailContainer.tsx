@@ -1,29 +1,28 @@
 import moment from "moment/moment";
 
-export default  function DetailContainer({event}: {event: any}){
+interface DetailContainerProps {
+    event: any;
+    onDelete: () => void;
+}
 
+export default  function DetailContainer({event, onDelete }: DetailContainerProps){
+if(!event) return null;
 
     return(
         <div>
-            In development
+           <div>
+               <span>
+                   Booking
+               </span>
+               <h1>
+                   {event.clientName || event.resource?.clientName || 'client'}
+               </h1>
+               <p>
+
+               </p>
+           </div>
         </div>
 
-       /* <div>
-            <h1>
-                {event.resource.clientName}
-            </h1>
-            <h2>
-                service: {event.title}
-            </h2>
-            <h3>
-               direction {event.resource.direction}
-            </h3>
-            <h3>
-               start hour: {moment(event.start).format('hh:mm A')}
-            </h3>
-            <h3>
-               finish hour: {moment(event.end).format('hh:mm A')}
-            </h3>
-        </div>*/
+
     )
 }

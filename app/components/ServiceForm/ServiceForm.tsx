@@ -20,7 +20,6 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
     if(isSubmitted){
         return (
             <div className="text-center p-10 bg-white rounded-[32px] shadow-xl">
-                <div className="text-5xl mb-4">✅</div>
                 <h2 className="text-2xl font-black text-black mb-4 uppercase">¡Recibido!</h2>
                 <p className="text-gray-500 mb-6">the booking has been saved</p>
                 <Link
@@ -35,13 +34,16 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
 
     return(
         <div className="w-full max-w-md bg-white rounded-4xl p-8 shadow-2xl border border-black/5 animate-in fade-in zoom-in duration-300">
-            <button
+            <Link
+                href="/"><button
                 type='button'
                 className="group flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-black transition-colors mb-6"
             >
                 <span className="text-lg group-hover:-translate-x-1 transition-transform">←</span>
                 Back To Service
             </button>
+            </Link>
+
 
             <div className="mb-8">
                 <h2 className="text-3xl font-black text-gray-900 leading-tight uppercase">Request For</h2>

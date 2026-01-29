@@ -91,13 +91,13 @@
   display: none !important;
 }
 
-
-rbc-time-header-content > .rbc-row.rbc-time-header-cell > .rbc-header:nth-child(7) {
+/*
+.rbc-time-header-content > .rbc-row.rbc-time-header-cell > .rbc-header:nth-child(7) {
   display: none !important;
 }
 .rbc-time-content > .rbc-day-slot:nth-child(7){
   display: none !important;
-}
+}*/
 
 .rbc-time-header.rbc-overflowing {
   margin-right: 0 !important;

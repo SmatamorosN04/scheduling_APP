@@ -12,26 +12,16 @@ interface CalendarProps {
     onDateSelect?: (date: Date, end: Date) => void;
     //onSelectEvent : (event: any) => void;
 }
-const formats = {
-    // La columna de la izquierda (el gutter)
-    timeGutterFormat: 'HH:mm',
-    // La etiqueta de hora dentro de cada evento
-    eventTimeRangeFormat: ({ start, end }: any, culture: any, localizer: any) =>
-        localizer.format(start, 'HH:mm', culture) + ' - ' + localizer.format(end, 'HH:mm', culture),
-    // El formato al seleccionar un rango con el mouse
-    selectRangeFormat: ({ start, end }: any, culture: any, localizer: any) =>
-        localizer.format(start, 'HH:mm', culture) + ' - ' + localizer.format(end, 'HH:mm', culture),
-    // Formato del día en la vista de agenda
-    agendaTimeFormat: 'HH:mm',
-};
-moment.locale('en', {
-    week: {
-        dow: 1,
-
-    }
-});
 moment.tz.setDefault('America/Managua');
 const localizer = momentLocalizer(moment);
+
+
+moment.updateLocale('es-ni', {
+    week: {
+        dow: 1,
+        doy: 4
+    }
+});
 
 export default function ArielCalendar({ events, isClientView = false, onDateSelect }: CalendarProps) {
     const [currentView, setCurrentView] = useState<any>(isClientView? Views.MONTH : Views.WEEK);
@@ -55,7 +45,6 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 localizer={localizer}
                 events={events}
                 culture='en'
-                formats={formats}
                 startAccessor="start"
                 endAccessor="end"
                 step={60}
@@ -81,6 +70,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 }}
                 allDayMaxRows={0}
                 popup={true}
+                showMultiDayTimes={true}
                 selectable={isClientView}
                 onSelectSlot={(slotInfo) => {
                    if (!isClientView) return;

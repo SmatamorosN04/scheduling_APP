@@ -1,45 +1,67 @@
-export const dynamic = 'force-dynamic';
+'use client'
 
-import clientPromise from "@/lib/mongodb";
-import ArielCalendar from "@/app/components/Calendar/calendar";
+import {useEffect, useState} from "react";
+import {deleteAppointment, getAppointments} from "@/lib/actions";
 import Header from "@/app/components/header/header";
-import Footer from "@/app/components/footer/footer";
+import ArielCalendar from "@/app/components/Calendar/calendar";
+import DetailContainer from "@/app/components/DetailContainer/DetailContainer";
 
-export default async function DashBoard() {
-    let events: any[] = [];
+export default function Dashboard(){
+    const[events, setEvents] = useState<any[]>([]);
+    const [selectedEvent, setSelectedEvents] = useState<any>(null)
+    const [loading, setLoading] = useState(true);
 
-    try {
-        const client = await clientPromise;
-        const db = client.db("scheduling_App");
+    const loadEvents = async () => {
+        try {
+            const fetchedEvents = await getAppointments();
+            setEvents(fetchedEvents);
+        } catch (error) {
+            console.error("Error loading events:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        const rawEvents = await db.collection('appointments').find({}).toArray();
+    useEffect(() => {
+        setSelectedEvents(null)
+        loadEvents();
+    },[]);
 
-        events = rawEvents.map((ev: any) => {
-            const startDateTime = new Date(`${ev.date}T${ev.start}:00`);
-            const endDateTime = new Date(`${ev.date}T${ev.finish}:00`);
+    const handleDelete = async () => {
+        if (!selectedEvent) return;
 
-            return {
-                id: ev._id.toString(),
-                title: ev.title,
-                start: startDateTime,
-                end: endDateTime,
-                clientName: ev.clientName || "Cliente anónimo",
-                service: ev.service,
-                color_hex: ev.color_hex,
-            };
-        });
-    } catch (error) {
-        console.error('Error cargando eventos:', error);
-    }
+        const confirmDelete = confirm(`U want to delete the booking of ${selectedEvent.clientName}`);
+        if (confirmDelete) {
+            const result = await deleteAppointment(selectedEvent.id);
+            if(result &&  result.success){
+                setSelectedEvents(null);
+                loadEvents();
+            }else{
+                alert('Error deleting')
+            }
+        }
+    };
+
     return (
-        <div className="flex flex-col min-h-screen bg-[#F2EFDF] font-sans">
-            <Header />
-            <main className="flex-1 flex flex-col items-center justify-center p-4 pt-24 pb-20">
-                <div className="w-full max-w-6xl bg-white p-6 rounded-[32px] shadow-sm border border-black/5">
-                    <ArielCalendar events={events} isClientView={false} />
+        <div className='flex flex-col min-h-screen bg-[#F2EFDF] font-sans'>
+            <Header/>
+            <main className='flex-1 flex flex-col items-center justify-center p-4 pt-24 pb-20 relative'>
+                <div className='w-full max-w-6xl bg-white p-6 rounded-lg shadow-sm border border-black'>
+                    {loading ? (
+                        <div className='h-[60vh] flex items-center justify-center text-black '> Loading Agenda....</div>
+                    ) : (
+                        <ArielCalendar
+                            events={events}
+                            isClientView={false}
+                        />
+                    )}
                 </div>
+
+               {/* <DetailContainer />*/}
             </main>
-            <Footer />
+
         </div>
-    );
+    )
+
+
 }
