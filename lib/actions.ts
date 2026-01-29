@@ -14,14 +14,20 @@ export async function getAppointments() {
 
         return appointments.map(app => {
 
-            const startISO = `${app.date}T${app.start}:00`;
-            const endISO = `${app.date}T${app.finish}:00`;
+            const startDate = new Date(`${app.date.split('T')[0]}T${app.start}:00`);
+            const endDate = new Date(`${app.date.split('T')[0]}T${app.finish}:00`);
 
+            // 2. Si estamos en el despliegue (producción), sumamos las 6 horas
+            // Comprobamos si el entorno es producción o si el offset es 0 (UTC)
+            if (process.env.NODE_ENV === 'production' || startDate.getTimezoneOffset() === 0) {
+                startDate.setHours(startDate.getHours() + 6);
+                endDate.setHours(endDate.getHours() + 6);
+            }
             return {
                 id: app._id.toString(),
                 title: app.title,
-                start: new Date(startISO),
-                end: new Date(endISO),
+                start: startDate,
+                end: endDate,
                 clientName: app.clientName,
                 direction: app.direction,
                 phone_number: app.phone_number,
