@@ -77,7 +77,6 @@
   background-color: white !important;
   border: 1px solid rgba(0,0,0,0.03) !important;
   border-radius: 32px !important;
-
   box-shadow: 0 10px 30px rgba(0,0,0,0.02);
 }
 
@@ -100,8 +99,6 @@
   font-size: 13px !important;
   color: black !important;
 }
-
-
 
 .rbc-time-content {
   border: none !important;
@@ -127,52 +124,17 @@
   background: none !important;
   padding: 0 !important;
   border: none !important;
+  box-shadow: none !important;
+  margin: 1px !important;
 }
 
-.client-event-style {
-  background-color: #f9fafb !important;
-  border-left: 3px solid #e5e7eb !important;
-  color: #9ca3af !important;
-  font-size: 9px !important;
-  font-weight: 900;
-  text-transform: uppercase;
-  border-radius: 4px !important;
-  margin: 2px !important;
+.rbc-event-label {
+  display: none !important;
 }
 
-@media (max-width: 768px) {
-  .rbc-toolbar {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .rbc-time-view.rbc-time-view-threeDay .rbc-time-gutter {
-    display: none !important;
-  }
-
-  .rbc-time-view {
-    border-radius: 24px !important;
-    padding: 5px;
-  }
-
-  .rbc-agenda-table {
-    display: block !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  .rbc-agenda-table thead {
-    display: none !important;
-  }
-
-  .rbc-agenda-table tbody,
-  .rbc-agenda-table tr,
-  .rbc-agenda-table td {
-    display: block !important;
-    width: 100% !important;
-  }
-
+.rbc-event-content {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .rbc-off-range-bg {
@@ -192,4 +154,38 @@
   background-color: rgba(0, 0, 0, 0.02) !important;
   opacity: 0.5;
   cursor: not-allowed !important;
+}
+
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .rbc-toolbar .rbc-btn-group button:nth-child(1),
+  .rbc-toolbar .rbc-btn-group button:nth-child(2) {
+    display: none !important;
+  }
+
+  .rbc-time-view {
+    border-radius: 24px !important;
+    padding: 5px;
+  }
+
+  .rbc-agenda-table {
+    display: block !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  .rbc-agenda-table thead {
+    display: none !important;
+  }
+
+  .rbc-agenda-table tbody,
+  .rbc-agenda-table tr,
+  .rbc-agenda-table td {
+    display: block !important;
+    width: 100% !important;
+  }
 }

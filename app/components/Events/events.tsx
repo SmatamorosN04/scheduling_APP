@@ -1,31 +1,31 @@
 import moment from "moment";
 
-export default function CustomEvent ({ event }: {event:any})  {
+export default function CustomEvent({ event }: { event: any }) {
     return (
         <div
-            className="h-full cursor-pointer active:scale-95 transition-transform w-full p-2 rounded-lg shadow-md flex flex-col justify-start border-l-4 border-black/30 transition-all hover:scale-[1.02]"
-            style={{ backgroundColor: event.color_hex }}
+            className="h-full w-full p-2 rounded-md flex flex-col justify-center border-l-[4px] border-black/20 overflow-hidden"
+            style={{ backgroundColor: event.color_hex || '#3174ad' }}
         >
-            <div className="overflow-hidden">
-                <h1 className="font-bold text-[11px] md:text-xs leading-tight uppercase truncate text-black">
+            <div className="flex flex-col gap-0.5">
+                {/* Título del evento */}
+                <div className='flex flex-raw gap-2'>
+                    <h1 className="font-bold text-[10px] md:text-[11px] leading-none uppercase truncate text-black/90">
                     {event.title}
-                </h1>
-                <p className=" text-[11px] md:text-xs leading-tight uppercase truncate text-black">
-                    {event.clientName || 'without name'}
-                </p>
-                <p className=" text-[11px] md:text-xs leading-tight uppercase truncate wrap-break-word text-black">
-                    {event.direction || 'without direction'}
-                </p>
-            </div>
-            <div className="flex justify-evenly items-center mt-1">
-         <span className="text-[9px] font-bold bg-white px-1.5 py-0.5 rounded text-black">
-          {moment(event.start).format('hh:mm A')}
+                    </h1>
 
-        </span>
-                <span className="text-[9px] font-bold bg-white px-1.5 py-0.5 rounded text-black">
-                {moment(event.end).format('hh:mm A')}
-                </span>
+                </div>
+                <h1 className="font-bold text-[10px] md:text-[11px] leading-none uppercase truncate text-black/90">
+                {event.clientName}
+            </h1>
+                <h1 className="font-bold text-[10px] md:text-[11px] leading-none uppercase truncate text-black/90">
+                    {event.direction}
+                </h1>
+
+                {/* Horario de inicio y fin */}
+                <p className="text-[9px] md:text-[10px] font-medium text-black/70 truncate tracking-tight">
+                    {moment(event.start).format('h:mm')} - {moment(event.end).format('h:mm A')}
+                </p>
             </div>
         </div>
     );
-};
+}
