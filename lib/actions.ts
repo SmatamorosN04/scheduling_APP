@@ -38,19 +38,14 @@ export async function  createAppointment(formData: FormData){
 
 
     try{
-        const startDate = new Date(rawSelectedDate);
-        const startH = parseInt(startTimeStr)
-        startDate.setHours(startH, 0, 0, 0);
+        const [year, month, day] = rawSelectedDate.split('-').map(Number);
 
-        const finishDate = new Date(rawSelectedDate);
+        const startDate = new Date(year, month - 1, day, parseInt(startTimeStr), 0, 0);
+
         let endH = parseInt(finishTimeStr);
+        if (endH <= parseInt(startTimeStr)) endH = parseInt(startTimeStr) + 1;
 
-        if (endH <= startH){
-            endH = startH + 1;
-        }
-
-        finishDate.setHours(endH,0,0,0);
-
+        const finishDate = new Date(year, month - 1, day, endH, 0, 0);
 
         await db.collection('appointments').insertOne({
             title: service,
