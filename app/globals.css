@@ -1,10 +1,6 @@
 @import "tailwindcss";
 
 :root {
-
-
-@theme inline {
-
   --background: #F2EFDF;
   --secundary-color: #F2A950;
   --terciary-color: #F28D35;
@@ -12,41 +8,102 @@
   --instalation-color: #FF8D28;
   --maintenance-color: #00C0E8;
 }
+
+.rbc-calendar {
+  font-family: inherit;
+  background-color: transparent !important;
 }
-.rbc-time-view, .rbc-time-content, .rbc-time-header {
+
+.rbc-main-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rbc-toolbar {
+  margin-bottom: 2rem !important;
+  border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+  padding-bottom: 1.5rem !important;
+  display: flex;
+  align-items: center;
+}
+
+.rbc-toolbar-label {
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  font-style: italic;
+  letter-spacing: -0.05em;
+  font-size: 1.5rem !important;
+  color: black;
+}
+
+.rbc-toolbar button {
   border: none !important;
+  background: transparent !important;
+  color: #9CA3AF !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.rbc-toolbar button:hover {
+  color: var(--secundary-color) !important;
+}
+
+.rbc-toolbar button.rbc-active {
+  color: black !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .rbc-header {
-  border-bottom: 1px solid #E5E7EB;
-  padding: 15px 0;
+  border: none !important;
+  padding: 15px 0 !important;
+  background-color: transparent !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: black;
+  opacity: 0.4;
+}
+
+.rbc-month-view {
   background-color: white !important;
-  color: black;
+  border: 1px solid rgba(0,0,0,0.03) !important;
+  border-radius: 32px !important;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
 }
 
-.rbc-day-slot{
-  border-right: 1px solid #f3f4f6;
+.rbc-month-row {
+  border-top: 1px solid rgba(0,0,0,0.03) !important;
 }
 
-.rbc-timeslot-group {
-  border-bottom: 1px solid #f3f4f6 !important;
-  min-height: 50px !important;
-  color: black;
-
+.rbc-day-bg {
+  border-left: 1px solid rgba(0,0,0,0.03) !important;
+  transition: background 0.2s;
 }
 
-.rbc-time-slot {
-  border-top: 1px solid #DCE0E5 !important;
-
+.rbc-day-bg:hover {
+  background-color: rgba(242, 169, 80, 0.05) !important;
 }
 
-.rbc-time-header-gutter .rbc-label {
-  display: none;
+.rbc-date-cell {
+  padding: 12px !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  color: black !important;
 }
-.rbc-event {
-  padding: 0 !important;
-  margin: 0 !important;
-  background: none !important;
+
+
+
+.rbc-time-content {
   border: none !important;
 }
 
@@ -54,108 +111,55 @@
   border: none !important;
 }
 
+.rbc-timeslot-group {
+  border-bottom: 1px solid rgba(0,0,0,0.03) !important;
+  min-height: 60px !important;
+}
+
 .rbc-label {
-  font-size: 0.85rem;
-  color: black;
-  padding-right: 10px !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  color: #9CA3AF !important;
+  text-transform: uppercase;
 }
 
-.rbc-today {
-  background-color: transparent !important;
-}
-.rbc-day-slot.rbc-today{
-  background-color: #fdf8e1 ;
-}
-.rbc-header.rbc-today{
-  background-color: white !important;
-  font-weight: bold;
-}
-
-.rbc-toolbar button {
-  border: 1px solid #E5E7EB;
-  border-radius: 6px;
-  color: #374151;
-  padding: 5px 12px;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  background-color: white;
-}
-.rbc-toolbar-label{
-  text-align: center;
-  flex-grow: 1;
-  padding: 0 10px;
-  color: black;
-}
-.rbc-time-header-content > .rbc-row:last-child,
-.rbc-allday-cell {
-  display: none !important;
-}
-
-/*
-.rbc-time-header-content > .rbc-row.rbc-time-header-cell > .rbc-header:nth-child(7) {
-  display: none !important;
-}
-.rbc-time-content > .rbc-day-slot:nth-child(7){
-  display: none !important;
-}*/
-
-.rbc-time-header.rbc-overflowing {
-  margin-right: 0 !important;
-  padding-right: 0 !important;
-}
-
-.rbc-time-header-content > .rbc-row.rbc-time-header-cell > .rbc-header,
-.rbc-day-slot {
-  flex: 1 0 0% !important;
-  min-width: 0 !important;
-}
-.rbc-day-slot .rbc-event-label{
-  display: none;
-}
-
-.rbc-month-view .rbc-header,
-.rbc-month-view .rbc-day-bg {
-  display: flex !important;
-  flex: 1 0 0% !important;
-  max-width: none !important;
-}
-
-.rbc-month-view {
-  background-color: #F2EFDF !important;
+.rbc-event {
+  background: none !important;
+  padding: 0 !important;
   border: none !important;
 }
 
-.rbc-month-row {
-  border-top: 1px solid rgba(0,0,0,0.05) !important;
+.client-event-style {
+  background-color: #f9fafb !important;
+  border-left: 3px solid #e5e7eb !important;
+  color: #9ca3af !important;
+  font-size: 9px !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-radius: 4px !important;
+  margin: 2px !important;
 }
-.rbc-month-view .rbc-date-cell {
-  padding: 8px !important;
-  text-align: right !important;
-  font-weight: 700 !important;
-  color: #4B5563 !important;
-  font-size: 14px !important;
-}
-.rbc-month-view .rbc-date-cell a {
-  color: inherit !important;
-  text-decoration: none !important;
-  cursor: pointer;
-}
-.rbc-month-view .rbc-now .rbc-date-cell {
-  color: white !important;
-}
+
 @media (max-width: 768px) {
-  .rbc-calendar {
-    background-color: #F2EFDF !important;
+  .rbc-toolbar {
+    flex-direction: column;
+    gap: 15px;
   }
 
-  .rbc-agenda-view {
-    border: none !important;
-    padding: 10px !important;
+  .rbc-time-view.rbc-time-view-threeDay .rbc-time-gutter {
+    display: none !important;
+  }
+
+  .rbc-time-view {
+    border-radius: 24px !important;
+    padding: 5px;
   }
 
   .rbc-agenda-table {
     display: block !important;
     background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .rbc-agenda-table thead {
@@ -167,87 +171,25 @@
   .rbc-agenda-table td {
     display: block !important;
     width: 100% !important;
-    border: none !important;
   }
 
-  .rbc-agenda-date-cell {
-    font-size: 0.9rem !important;
-    font-weight: 800 !important;
-    color: #4B5563 !important;
-    padding: 20px 10px 10px 5px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .rbc-agenda-event-cell {
-    background: white !important;
-    border-radius: 16px !important;
-    margin-bottom: 12px !important;
-    padding: 15px !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
-    border: 1px solid rgba(0,0,0,0.03) !important;
-  }
-
-  .rbc-agenda-time-cell {
-    font-size: 0.8rem !important;
-    color: #6B7280 !important;
-    padding: 0 15px !important;
-    margin-bottom: -5px;
-    font-weight: 600;
-  }
-
-  .rbc-agenda-content {
-    overflow-y: auto !important;
-  }
 }
-.rbc-agenda-view {
+
+.rbc-off-range-bg {
+  background-color: #fafafa !important;
+  opacity: 0.4;
+}
+
+.rbc-today {
   background-color: transparent !important;
 }
 
-.rbc-agenda-table {
-  border: none !important;
-  background: white;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+.rbc-day-slot.rbc-today {
+  background-color: #FDFCF7 !important;
 }
 
-.rbc-agenda-table thead > tr > th {
-  background-color: #f3f4f6;
-  text-transform: uppercase;
-  font-size: 10px;
-  color: black;
-  padding: 10px;
-}
-
-.rbc-agenda-date-cell {
-  font-weight: bold;
-  color: black;
-}
-.rbc-calendar *, .rbc-calendar :before, .rbc-calendar :after {
-  color: black;
-}
-.rbc-day-bg:nth-child(7) {
-  background-color: rgba(0, 0, 0, 0.03) !important; /* Un tono gris muy sutil */
-  cursor: not-allowed !important;
-}
-.rbc-day-bg:not(:nth-child(7)) {
-  cursor: pointer !important;
-}
-.rbc-month-view .rbc-date-cell:nth-child(7) {
-  cursor: not-allowed !important;
+.rbc-day-bg:nth-child(7), .rbc-month-view .rbc-date-cell:nth-child(7) {
+  background-color: rgba(0, 0, 0, 0.02) !important;
   opacity: 0.5;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  cursor: not-allowed !important;
 }

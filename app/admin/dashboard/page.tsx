@@ -57,7 +57,6 @@ export default function Dashboard(){
                     )}
                 </div>
 
-               {/* <DetailContainer />*/}
             </main>
 
         </div>

@@ -5,7 +5,6 @@ import ServiceForm from "@/app/components/ServiceForm/ServiceForm";
 import {useSearchParams} from "next/dist/client/components/navigation";
 import {Suspense, useEffect, useState} from "react";
 import ArielCalendar from "@/app/components/Calendar/calendar";
-import TimeSlotPicker from "@/app/components/TimeSlotPicker/TimeSlotPicker";
 import {getAppointments} from "@/lib/actions";
 
 
@@ -50,46 +49,71 @@ function BookingContent() {
     }
 
     return (
-       <div>
-           <h2>
-               {step === 1 ? "Select Date for get a booking" : `Complete the booking: ${serviceName}`}
-           </h2>
-           {step === 1 ? (
-               <div>
-                   <ArielCalendar events={events}
-                   isClientView={true}
-                   onDateSelect={handleDateSelect}
-                   />
-               </div>
-           ): (
-               <div>
-                <ServiceForm
-                serviceTitle={serviceName}
-                selectedDate={startDate}
-                endDate={finishDate}
-                />
+        <div className="w-full h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-700">
 
-               </div>
-           )}
-       </div>
+            {/* Títulos minimalistas */}
+            <div className="flex-none mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600 mb-1 block">
+                        Step 0{step}
+                    </span>
+                    <h2 className="text-xl md:text-5xl font-black uppercase tracking-tighter italic leading-none text-black">
+                        {step === 1 ? "Select Date" : "Final Details"}
+                    </h2>
+                </div>
+                {step === 2 && (
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 border-l-2 border-gray-100 pl-4">
+                        {serviceName}
+                    </p>
+                )}
+            </div>
+
+            {/* Contenedor Adaptable */}
+            <div className="flex-1 min-h-0 w-full">
+                {step === 1 ? (
+                    <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
+                        <ArielCalendar
+                            events={events}
+                            isClientView={true}
+                            onDateSelect={handleDateSelect}
+                        />
+                    </div>
+                ) : (
+                    <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
+                            <ServiceForm
+                                serviceTitle={serviceName}
+                                selectedDate={startDate}
+                                endDate={finishDate}
+                            />
+
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }
 
 export default function Booking(){
 
-        return (
-            <div className='h-screen items-center bg-[#F2EFDF] w-full flex flex-col '>
-                <Header/>
-                <main className='flex-1 flex items-center justify-center p-4'>
-                   <Suspense fallback={<p className="text-sm font-bold animate-pulse">Loading Booking service</p>}>
-                        <BookingContent />
-                   </Suspense>
+    return (
+        <div className='h-screen w-full flex flex-col bg-[#FDFCF7] overflow-hidden'>
+            <Header />
 
+            {/* El main ocupa TODO el espacio restante sin desbordar */}
+            <main className='flex-1 min-h-0 w-full flex items-center justify-center p-4 md:p-6'>
+                <Suspense fallback={
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading...</p>
+                    </div>
+                }>
+                    <BookingContent />
+                </Suspense>
+            </main>
 
-                </main>
-                <Footer/>
-            </div>
-        )
+            <Footer />
+        </div>
+    );
     }
 
 

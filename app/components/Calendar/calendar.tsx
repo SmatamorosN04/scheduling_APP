@@ -8,28 +8,32 @@ import moment from 'moment-timezone';
 
 interface CalendarProps {
     events: any[];
-    isClientView?: boolean
+    isClientView?: boolean;
     onDateSelect?: (date: Date, end: Date) => void;
-    //onSelectEvent : (event: any) => void;
 }
+
 moment.tz.setDefault('America/Managua');
 const localizer = momentLocalizer(moment);
 
-
 moment.updateLocale('es-ni', {
-    week: {
-        dow: 1,
-        doy: 4
-    }
+    week: { dow: 1, doy: 4 }
 });
 
 export default function ArielCalendar({ events, isClientView = false, onDateSelect }: CalendarProps) {
-    const [currentView, setCurrentView] = useState<any>(isClientView? Views.MONTH : Views.WEEK);
+    // Inicializamos la vista según el tamaño de la pantalla para evitar el salto visual
+    const [currentView, setCurrentView] = useState<any>(
+        isClientView ? Views.MONTH : (typeof window !== 'undefined' && window.innerWidth < 768 ? Views.AGENDA : Views.WEEK)
+    );
     const [date, setDate] = useState(new Date());
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth < 768 && !isClientView) {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+
+            // Si detecta móvil y estamos en una vista prohibida, saltamos a Agenda
+            if (mobile && !isClientView && (currentView === Views.MONTH || currentView === Views.WEEK)) {
                 setCurrentView(Views.AGENDA);
             }
         };
@@ -38,6 +42,15 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [isClientView]);
+
+    const availableViews = isClientView
+        ? [Views.MONTH, Views.DAY]
+        : {
+            month: true,
+            week: !isMobile,
+            day: false,
+            agenda: true
+        };
 
     return (
         <div className="h-[80vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4">
@@ -53,39 +66,34 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 timeslots={1}
                 view={currentView}
                 onView={(view) => setCurrentView(view)}
-
                 dayLayoutAlgorithm="no-overlap"
-                views={isClientView ? [Views.MONTH, Views.DAY] : {
-                    month: true,
-                    week: true,
-                    day: false,
-                    agenda: true
-                }}
 
-                eventPropGetter={() => ({ className: isClientView ? "!bg-gray-400 !rounded-lg !text-white h-full" : "!bg-transparent !border-0" })}
+                // Usamos la configuración que filtra las vistas
+                views={availableViews}
 
-                titleAccessor={isClientView ? ()=> "Busy": "title"}
+                eventPropGetter={() => ({
+                    className: isClientView ? "!bg-gray-400 !rounded-lg !text-white h-full " : "!bg-transparent !border-0"
+                })}
+
+                titleAccessor={isClientView ? () => "Busy" : "title"}
                 components={{
-                    event: isClientView ? undefined :  CustomEvent,
+                    event: isClientView ? undefined : CustomEvent,
                 }}
                 allDayMaxRows={0}
                 popup={true}
                 showMultiDayTimes={true}
                 selectable={isClientView}
                 onSelectSlot={(slotInfo) => {
-                   if (!isClientView) return;
+                    if (!isClientView) return;
+                    if (slotInfo.start.getDay() === 0) return;
 
-                   if (slotInfo.start.getDay() === 0) return;
-
-                   if (currentView === Views.MONTH){
-                       setDate(slotInfo.start);
-                       setCurrentView(Views.DAY);
-                }
-                else if (onDateSelect) {
-                       onDateSelect(slotInfo.start, slotInfo.end)
-                   }
+                    if (currentView === Views.MONTH) {
+                        setDate(slotInfo.start);
+                        setCurrentView(Views.DAY);
+                    } else if (onDateSelect) {
+                        onDateSelect(slotInfo.start, slotInfo.end);
+                    }
                 }}
-
                 min={new Date(0, 0, 0, 8, 0, 0)}
                 max={new Date(0, 0, 0, 18, 0, 0)}
                 messages={{
