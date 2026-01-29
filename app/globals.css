@@ -141,29 +141,63 @@
   cursor: pointer;
 }
 .rbc-month-view .rbc-now .rbc-date-cell {
-  color: #F28D35 !important;
+  color: white !important;
 }
 @media (max-width: 768px) {
-  .rbc-time-view {
-    min-width: 600px;
-  }
-
   .rbc-calendar {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
+    background-color: #F2EFDF !important;
   }
 
-  .rbc-time-gutter {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-    background-color: #F2EFDF; /* Tu color crema */
-    border-right: 1px solid rgba(0,0,0,0.05);
+  .rbc-agenda-view {
+    border: none !important;
+    padding: 10px !important;
   }
 
-  .rbc-header {
-    font-size: 11px !important;
-    padding: 5px 0 !important;
+  .rbc-agenda-table {
+    display: block !important;
+    background: transparent !important;
+  }
+
+  .rbc-agenda-table thead {
+    display: none !important;
+  }
+
+  .rbc-agenda-table tbody,
+  .rbc-agenda-table tr,
+  .rbc-agenda-table td {
+    display: block !important;
+    width: 100% !important;
+    border: none !important;
+  }
+
+  .rbc-agenda-date-cell {
+    font-size: 0.9rem !important;
+    font-weight: 800 !important;
+    color: #4B5563 !important;
+    padding: 20px 10px 10px 5px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .rbc-agenda-event-cell {
+    background: white !important;
+    border-radius: 16px !important;
+    margin-bottom: 12px !important;
+    padding: 15px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(0,0,0,0.03) !important;
+  }
+
+  .rbc-agenda-time-cell {
+    font-size: 0.8rem !important;
+    color: #6B7280 !important;
+    padding: 0 15px !important;
+    margin-bottom: -5px;
+    font-weight: 600;
+  }
+
+  .rbc-agenda-content {
+    overflow-y: auto !important;
   }
 }
 .rbc-agenda-view {
@@ -193,7 +227,17 @@
 .rbc-calendar *, .rbc-calendar :before, .rbc-calendar :after {
   color: black;
 }
-
+.rbc-day-bg:nth-child(7) {
+  background-color: rgba(0, 0, 0, 0.03) !important; /* Un tono gris muy sutil */
+  cursor: not-allowed !important;
+}
+.rbc-day-bg:not(:nth-child(7)) {
+  cursor: pointer !important;
+}
+.rbc-month-view .rbc-date-cell:nth-child(7) {
+  cursor: not-allowed !important;
+  opacity: 0.5;
+}
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

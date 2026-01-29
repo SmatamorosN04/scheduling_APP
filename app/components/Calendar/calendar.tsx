@@ -13,38 +13,30 @@ interface CalendarProps {
     onDateSelect?: (date: Date, end: Date) => void;
 }
 
+moment.locale('en', {
+    week: {
+        dow: 1,
+
+    }
+});
+
 const localizer = momentLocalizer(moment);
 
 export default function ArielCalendar({ events, isClientView = false, onDateSelect }: CalendarProps) {
     const [currentView, setCurrentView] = useState<any>(isClientView? Views.MONTH : Views.WEEK);
-    const [isMobile, setIsMobile] = useState(false);
     const [date, setDate] = useState(new Date());
 
-   /* useEffect(() => {
-        const checkMobile = () => {
-            const mobile = window.innerWidth < 768;
-            setIsMobile(mobile);
-            if (mobile) setCurrentView(Views.AGENDA);
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768 && !isClientView) {
+                setCurrentView(Views.AGENDA);
+            }
         };
 
-        checkMobile();
-        window.addEventListener("resize", checkMobile);
-        return () => window.removeEventListener("resize", checkMobile);
-    }, [isClientView]);*/
-
-    /*const handleSelectSlot = (slotInfo: any) => {
-        if(!isClientView) return
-
-        if(currentView === Views.MONTH){
-            setDate(slotInfo)
-            setCurrentView(Views.DAY)
-        }
-        else if (currentView === Views.DAY || currentView === Views.WEEK) {
-            if (onDateSelect) {
-                onDateSelect(slotInfo.start, slotInfo.end);
-            }
-        }
-    }*/
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [isClientView]);
 
     return (
         <div className="h-[80vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4">
@@ -61,10 +53,15 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 view={currentView}
                 onView={(view) => setCurrentView(view)}
 
+               dayPropGetter={(date) => {
+                    if (date.getDay() === 0) return { style: { display: 'none' } };
+                    return {};
+                }}
+                dayLayoutAlgorithm="no-overlap"
                 views={isClientView ? [Views.MONTH, Views.DAY] : {
                     month: true,
                     week: true,
-                    day: true,
+                    day: false,
                     agenda: true
                 }}
 
@@ -81,6 +78,8 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 selectable={isClientView}
                 onSelectSlot={(slotInfo) => {
                    if (!isClientView) return;
+
+                   if (slotInfo.start.getDay() === 0) return;
 
                    if (currentView === Views.MONTH){
                        setDate(slotInfo.start);
