@@ -2,15 +2,15 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import CustomEvent from "@/app/components/Events/events";
-import moment from 'moment';
 import 'moment/locale/es';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-
+import moment from 'moment-timezone';
 
 interface CalendarProps {
     events: any[];
     isClientView?: boolean
     onDateSelect?: (date: Date, end: Date) => void;
+    //onSelectEvent : (event: any) => void;
 }
 
 moment.locale('en', {
@@ -19,7 +19,7 @@ moment.locale('en', {
 
     }
 });
-
+moment.tz.setDefault('America/Managua');
 const localizer = momentLocalizer(moment);
 
 export default function ArielCalendar({ events, isClientView = false, onDateSelect }: CalendarProps) {
@@ -53,7 +53,6 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 view={currentView}
                 onView={(view) => setCurrentView(view)}
 
-
                 dayLayoutAlgorithm="no-overlap"
                 views={isClientView ? [Views.MONTH, Views.DAY] : {
                     month: true,
@@ -65,12 +64,9 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 eventPropGetter={() => ({ className: isClientView ? "!bg-gray-400 !rounded-lg !text-white h-full" : "!bg-transparent !border-0" })}
 
                 titleAccessor={isClientView ? ()=> "Busy": "title"}
-
                 components={{
-
                     event: isClientView ? undefined :  CustomEvent,
                 }}
-
                 allDayMaxRows={11}
                 popup={true}
                 selectable={isClientView}
