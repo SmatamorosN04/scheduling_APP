@@ -53,10 +53,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 view={currentView}
                 onView={(view) => setCurrentView(view)}
 
-               dayPropGetter={(date) => {
-                    if (date.getDay() === 0) return { style: { display: 'none' } };
-                    return {};
-                }}
+
                 dayLayoutAlgorithm="no-overlap"
                 views={isClientView ? [Views.MONTH, Views.DAY] : {
                     month: true,
@@ -74,7 +71,8 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                     event: isClientView ? undefined :  CustomEvent,
                 }}
 
-                allDayMaxRows={0}
+                allDayMaxRows={11}
+                popup={true}
                 selectable={isClientView}
                 onSelectSlot={(slotInfo) => {
                    if (!isClientView) return;

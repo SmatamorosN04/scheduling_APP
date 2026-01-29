@@ -15,14 +15,14 @@ export default async function DashBoard() {
         const rawEvents = await db.collection('appointments').find({}).toArray();
 
         events = rawEvents.map((ev: any) => {
-           /* const startDateTime = new Date(`${ev.date}T${ev.start}:00`);
-            const endDateTime = new Date(`${ev.date}T${ev.finish}:00`);*/
+            const startDateTime = new Date(`${ev.date}T${ev.start}:00`);
+            const endDateTime = new Date(`${ev.date}T${ev.finish}:00`);
 
             return {
                 id: ev._id.toString(),
                 title: ev.title,
-                start: ev.start,
-                end: ev.finish,
+                start: startDateTime,
+                end: endDateTime,
                 clientName: ev.clientName || "Cliente anónimo",
                 service: ev.service,
                 color_hex: ev.color_hex,
