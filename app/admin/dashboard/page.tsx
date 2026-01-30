@@ -23,6 +23,11 @@ export default function Dashboard() {
         endTime: ""
     })
 
+    const Services = [
+        'Field analysis',
+        'Instalation',
+        'Maintenance'
+    ];
 
 
 
@@ -73,19 +78,23 @@ export default function Dashboard() {
             }
         }
     };
+    const AvailableHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+    const formatHour = (h: number) => {
+        const hour = h > 12 ? h - 12 : h;
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        return `${hour.toString().padStart(2, '0')}:00 ${ampm}`;
+    };
 
     const handleUpdate = async () => {
         if (!selectedEvent) return;
 
-        // 1. Identificar el ID correctamente (MongoDB usa _id, librerías usan id)
         const appointmentId = selectedEvent.id || selectedEvent._id;
 
         if (!appointmentId) {
             alert("Error: No se pudo encontrar el ID de la cita.");
             return;
         }
-
-        // 2. Construir el FormData con los nombres exactos que espera tu Server Action
         const formData = new FormData();
         formData.append('service', editForm.service);
         formData.append('name', editForm.name);
@@ -182,11 +191,21 @@ export default function Dashboard() {
                             <div className="space-y-5 animate-in fade-in slide-in-from-left-4 duration-300">
                                 <div>
                                     <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">Service</label>
-                                    <input
-                                        className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black focus:bg-white outline-none transition-all font-bold text-sm mt-1"
-                                        value={editForm.service}
-                                        onChange={(e) => setEditForm({...editForm, service: e.target.value})}
-                                    />
+                                  <select
+                                  className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black focus:bg-white outline-none transition-all font-bold text-sm mt-1"
+                                  value={editForm.service}
+                                  onChange={(e) => setEditForm({...editForm, service: e.target.value})}
+                                  >
+                                      {Services.map((servi) => (
+                                          <option
+                                              className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black
+                                              focus:bg-white outline-none transition-all font-bold text-sm mt-1"
+                                              key={servi} value={servi}>
+                                              {servi}
+                                          </option>
+                                      ))}
+                                  </select>
+
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">Client Name</label>
@@ -206,22 +225,33 @@ export default function Dashboard() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">Start (H)</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black outline-none transition-all font-bold text-sm mt-1"
+                                        <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">Start</label>
+                                        <select
+                                            className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black outline-none font-bold text-sm mt-1 cursor-pointer"
                                             value={editForm.startTime}
                                             onChange={(e) => setEditForm({...editForm, startTime: e.target.value})}
-                                        />
+                                        >
+                                            {AvailableHours.map((h) => (
+                                                <option key={h} value={h}>
+                                                    {formatHour(h)}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
+
                                     <div>
-                                        <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">End (H)</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black outline-none transition-all font-bold text-sm mt-1"
+                                        <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">End</label>
+                                        <select
+                                            className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black outline-none font-bold text-sm mt-1 cursor-pointer"
                                             value={editForm.endTime}
                                             onChange={(e) => setEditForm({...editForm, endTime: e.target.value})}
-                                        />
+                                        >
+                                            {AvailableHours.filter(h => h > parseInt(editForm.startTime)).map((h) => (
+                                                <option key={h} value={h}>
+                                                    {formatHour(h)}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="flex gap-3 pt-4">
