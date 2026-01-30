@@ -70,7 +70,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 views={availableViews}
 
                 eventPropGetter={() => ({
-                    className: isClientView ? "!bg-gray-400 !rounded-lg !text-white h-full " : "!bg-transparent !border-0"
+                    className: isClientView ? "!bg-gray-400 !rounded-lg !text-white h-full " : "!bg-white !text-black !rounded-lg  h-full"
                 })}
 
                 titleAccessor={isClientView ? () => "Busy" : "title"}

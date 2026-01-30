@@ -141,7 +141,9 @@
   background-color: #fafafa !important;
   opacity: 0.4;
 }
-
+.rbc-event {
+  margin-bottom: 2px !important;
+}
 .rbc-today {
   background-color: transparent !important;
 }
