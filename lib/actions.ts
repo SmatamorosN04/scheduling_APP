@@ -17,8 +17,7 @@ export async function getAppointments() {
             const startDate = new Date(`${app.date.split('T')[0]}T${app.start}:00`);
             const endDate = new Date(`${app.date.split('T')[0]}T${app.finish}:00`);
 
-            // 2. Si estamos en el despliegue (producción), sumamos las 6 horas
-            // Comprobamos si el entorno es producción o si el offset es 0 (UTC)
+
             if (process.env.NODE_ENV === 'production' || startDate.getTimezoneOffset() === 0) {
                 startDate.setHours(startDate.getHours() + 6);
                 endDate.setHours(endDate.getHours() + 6);
@@ -115,63 +114,58 @@ try{
     }
 }
 
-export async function updateAppointment(id: string, formData: FormData){
+export async function updateAppointment(id: string, formData: FormData) {
     const client = await clientPromise;
     const db = client.db('scheduling_App');
-    const service = formData.get('service');
-    const name = formData.get('name');
-    const address = formData.get('address');
-    const phone = formData.get('phone');
 
+    const service = formData.get('service') as string;
+    const name = formData.get('name') as string;
+    const address = formData.get('address') as string;
+    const phone = formData.get('phone') as string;
     const rawSelectedDate = formData.get('selectedDate') as string;
-    const startTimeStr = formData.get('startTime') as string;
-    const finishTimeStr = formData.get('endTime') as string;
+
+    const sH = parseInt(formData.get('startTime') as string);
+    const eH = parseInt(formData.get('endTime') as string);
+
+    const startTimeStr = `${sH.toString().padStart(2, '0')}:00`;
+    const finishTimeStr = `${eH.toString().padStart(2, '0')}:00`;
 
     try {
-        const existingOverlap = await db.collection('appointments').findOne({
+        const overlapping = await db.collection('appointments').findOne({
             date: rawSelectedDate,
-            start: startTimeStr,
-            finish: finishTimeStr,
-            _id: { $ne: new ObjectId(id)}
+            _id: { $ne: new ObjectId(id) },
+            $and: [
+                { start_num: { $lt: eH } },
+                { finish_num: { $gt: sH } }
+            ]
         });
 
-        if (existingOverlap){
-            return { error: "This hour is reserved by another client" }
+        if (overlapping) {
+            return { error: "This hour is reserved by another client" };
         }
-        const startDate = new Date(rawSelectedDate);
-        const startH = parseInt(startTimeStr);
-        startDate.setHours(startH, 0, 0, 0);
 
-        const finishDate = new Date(rawSelectedDate);
-        let endH = parseInt(finishTimeStr);
-
-        if (endH <= startH){
-            endH = startH + 1;
-        }
-        finishDate.setHours(endH, 0, 0, 0)
-
-        await db.collection('appointment').updateOne(
-            {
-                _id: new ObjectId(id)
-            },
+        await db.collection('appointments').updateOne(
+            { _id: new ObjectId(id) },
             {
                 $set: {
                     title: service,
-                    start: startDate,
-                    finish: finishDate,
                     clientName: name,
                     direction: address,
                     phone_number: phone,
-                    date: rawSelectedDate
+                    date: rawSelectedDate,
+                    start: startTimeStr,
+                    finish: finishTimeStr,
+                    start_num: sH,
+                    finish_num: eH
                 }
             }
         );
-        revalidatePath('/admin')
 
+        revalidatePath('/admin');
+        return { success: true };
 
-
-    }catch(error){
-        console.error('Error Updating the booking', error);
-        return { error: "Booking not updated"}
+    } catch (error: any) {
+        console.error('Error al actualizar:', error);
+        return { error: "No se pudo actualizar la cita" };
     }
 }
