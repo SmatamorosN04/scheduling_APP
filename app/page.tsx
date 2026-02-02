@@ -31,8 +31,7 @@ export default async function Home() {
                     <Link
                         href='/clientLogin'
                         className='bg-black w-full max-w-[280px] rounded-2xl p-4 text-white font-black uppercase text-xs tracking-[0.2em] hover:bg-orange-600 transition-all text-center shadow-lg active:scale-95'>
-                        See available Services
-                    </Link>
+                        Go to the registry to request a service                    </Link>
                 </section>
 
                 <div
@@ -43,33 +42,7 @@ export default async function Home() {
                         Our Specialized Solutions
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
 
-                        <Link href={`/clients/booking?service=${encodeURIComponent('Field Analysis')}`} className="h-full">
-                            <ServiceCard
-                                image={'/campo.png'}
-                                title={'Field analysis'}
-                                description={'Evaluation of physical and technical conditions, electrical infrastructure, and space to ensure maximum energy efficiency.'}
-                            />
-                        </Link>
-
-                        <Link href={`/clients/booking?service=${encodeURIComponent('Instalation')}`} className="h-full">
-                            <ServiceCard
-                                image={'/instalation.png'}
-                                title={'Installation'}
-                                description={'Professional mounting, refrigerant line connection, and safety testing for optimal cooling performance.'}
-                            />
-                        </Link>
-
-                        <Link href={`/clients/booking?service=${encodeURIComponent('Maintenance')}`} className="h-full">
-                            <ServiceCard
-                                image={'/maintenance.png'}
-                                title={'Maintenance'}
-                                description={'Cleaning, refrigerant checking, and electrical inspection to extend equipment lifespan and reduce breakdowns.'}
-                            />
-                        </Link>
-
-                    </div>
                 </div>
             </main>
 
