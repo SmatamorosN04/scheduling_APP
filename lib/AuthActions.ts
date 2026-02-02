@@ -2,6 +2,7 @@
 
 import clientPromise from "@/lib/mongodb";
 import { cookies } from "next/headers";
+import {redirect} from "next/dist/client/components/redirect";
 
 export async function loginCLient(identifier: string) {
     const client = await clientPromise;
@@ -42,4 +43,10 @@ export async function loginCLient(identifier: string) {
         isNew: isNew,
         error: undefined
     };
+}
+
+export async function logoutClient() {
+    (await cookies()).delete('client_session')
+    redirect('/')
+
 }

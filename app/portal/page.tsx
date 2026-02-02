@@ -2,9 +2,10 @@ import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
 import Link from "next/link"; // Importación estándar
 import ServiceCard from "@/app/components/ServiceCard/ServiceCard";
+import LogoutClientButton from "@/app/components/LogoutClientButton/LogoutCLientButton";
+import {logoutClient} from "@/lib/AuthActions";
 
 export default function Portal() {
-    // Esto es lo que luego reemplazaremos con los datos de MongoDB
     const mockHistory = [
         { id: '1', service: 'Field Analysis', date: '24 Oct 2025', status: 'En Camino' },
         { id: '2', service: 'Maintenance', date: '10 Sep 2025', status: 'Completado' },
@@ -13,6 +14,12 @@ export default function Portal() {
     return (
         <div className='min-h-screen flex flex-col bg-[#F2EFDF] text-black'>
             <Header />
+            <div className='w-30'>
+                <LogoutClientButton
+                text={'logOut'}
+                color={'bg-white'}
+                action={logoutClient}
+            /></div>
 
             <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12">
 
