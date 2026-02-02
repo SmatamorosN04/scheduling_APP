@@ -1,13 +1,24 @@
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
 import UserLoginForm from "@/app/components/UserLoginForm/UserLoginForm";
+import {cookies} from "next/dist/server/request/cookies";
+import {redirect} from "next/dist/client/components/redirect";
 
-export default function ClientLoginPage(){
-return (
+export default async function ClientLoginPage(){
+const cookieStore = await cookies();
+const session = cookieStore.get('client_session');
+
+if (session?.value){
+    redirect('/portal')
+}
+
+
+    return (
+
    <div className='min-h-screen flex flex-col bg-[#F2EFDF]'>
        <Header />
 
-       <main className='flex-grow flex items-center justify-center p-6'>
+       <main className='grow flex items-center justify-center p-6'>
            <div className='w-full max-w-md bg-white rounded-[40px] p-8 md:p-12 shadow-2xl shadow-black/5 border border-white'>
                <header className='mb-1 text-center'>
                    <span className='text-[10px] font-black uppercase tracking-[0.3em] text-gray-400'>Security Portal</span>

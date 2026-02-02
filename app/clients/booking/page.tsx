@@ -21,6 +21,8 @@ function BookingContent() {
     const searchParams = useSearchParams();
     const serviceName = searchParams.get("service") || "Servicio ";
     const[events, setEvents] = useState<CalendarEvent[]>([]);
+const [clientIdentifier, setClientIdentifier] = useState<string>("")
+
 
     useEffect(() => {
         async function fetchEvents() {
@@ -31,6 +33,16 @@ function BookingContent() {
                 } else {
                     setEvents([]);
                 }
+
+                const cookies = document.cookie.split(';')
+                const sessionCookie = cookies.find(row => row.startsWith('client_session='));
+
+                if (sessionCookie){
+                    const value = decodeURIComponent(sessionCookie.split('=')[1]);
+                    setClientIdentifier(value);
+                    console.log("value extracted from sessions Cookie", value)
+                }
+
             } catch (error) {
                 console.error("Error loading events:", error);
             }
@@ -51,7 +63,6 @@ function BookingContent() {
     return (
         <div className="w-full h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-700">
 
-            {/* Títulos minimalistas */}
             <div className="flex-none mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600 mb-1 block">
@@ -68,7 +79,6 @@ function BookingContent() {
                 )}
             </div>
 
-            {/* Contenedor Adaptable */}
             <div className="flex-1 min-h-0 w-full">
                 {step === 1 ? (
                     <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
@@ -81,9 +91,11 @@ function BookingContent() {
                 ) : (
                     <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
                             <ServiceForm
+                                key={clientIdentifier}
                                 serviceTitle={serviceName}
                                 selectedDate={startDate}
                                 endDate={finishDate}
+                                clientIdentifier={clientIdentifier}
                             />
 
                     </div>
@@ -99,7 +111,6 @@ export default function Booking(){
         <div className='h-screen w-full flex flex-col bg-[#FDFCF7] overflow-hidden'>
             <Header />
 
-            {/* El main ocupa TODO el espacio restante sin desbordar */}
             <main className='flex-1 min-h-0 w-full flex items-center justify-center p-4 md:p-6'>
                 <Suspense fallback={
                     <div className="flex flex-col items-center gap-2">

@@ -8,9 +8,10 @@ interface ServiceFormProps {
     serviceTitle: string;
     selectedDate: Date | null;
     endDate?: Date | null;
+    clientIdentifier: string
 }
 
-export default function ServiceForm({serviceTitle, selectedDate, endDate}: ServiceFormProps){
+export default function ServiceForm({serviceTitle, selectedDate, endDate, clientIdentifier}: ServiceFormProps){
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPending, setIsPending] = useState(false);
@@ -102,7 +103,20 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
                                 { label: "Full Name", name: "name", type: "text", placeholder: "e.g. Sergio Matamoros" },
                                 { label: "Complete Address", name: "address", type: "text", placeholder: "Street, number, colony..." },
                                 { label: "Phone Number", name: "phone", type: "tel", placeholder: "+505 0000 0000" }
-                            ].map((input) => (
+                            ]
+                                .filter((input) => {
+                                    const cleanId = clientIdentifier?.replace(/['"]+/g, '').trim();
+                                    const isPhoneLogin = cleanId && !cleanId.includes('@') && /^\d+$/.test(cleanId);
+
+                                    if (input.name === "phone" && isPhoneLogin) {
+                                        console.log("Ocultando input de teléfono para:", cleanId);
+                                        return false;
+                                    }
+
+                                    return true;
+
+                                })
+                                .map((input) => (
                                 <div key={input.name} className="relative group">
                                     <label className="text-[9px] font-black text-black uppercase tracking-[0.3em]  block opacity-30 group-focus-within:opacity-100 transition-opacity">
                                         {input.label}
