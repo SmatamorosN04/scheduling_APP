@@ -5,6 +5,7 @@ import Footer from "@/app/components/footer/footer";
 import ServiceCard from "@/app/components/ServiceCard/ServiceCard";
 import ServiceForm from "@/app/components/ServiceForm/ServiceForm";
 import BackButton from "@/app/components/BackButton/BackButton";
+import UserLoginForm from "@/app/components/UserLoginForm/UserLoginForm";
 
 {/*   <Link
         href="/admin/dashboard"
@@ -20,18 +21,18 @@ export default async function Home() {
             <main className='flex-1 flex flex-col items-center pt-20 pb-20'>
 
                 <section className='w-full min-h-[400px] md:h-[55vh] flex flex-col justify-center items-center bg-[#FDFBD4] text-center px-6 mb-12 shadow-inner'>
-                    <h1 className='text-4xl md:text-6xl text-black font-black uppercase tracking-tighter leading-none max-w-4xl'>
+                   <h1 className='text-4xl md:text-6xl text-black font-black uppercase tracking-tighter leading-none max-w-4xl'>
                         Welcome to Ariel&apos;s <br className="hidden md:block"/> Service page
                     </h1>
                     <p className='text-base md:text-xl text-gray-600 font-medium max-w-2xl mx-auto mb-10 mt-6'>
                         Schedule your technical services quickly, securely, and professionally.
                         Select a category to get started.
                     </p>
-                    <a
-                        href='#Services'
+                    <Link
+                        href='/clientLogin'
                         className='bg-black w-full max-w-[280px] rounded-2xl p-4 text-white font-black uppercase text-xs tracking-[0.2em] hover:bg-orange-600 transition-all text-center shadow-lg active:scale-95'>
                         See available Services
-                    </a>
+                    </Link>
                 </section>
 
                 <div

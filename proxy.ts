@@ -12,5 +12,16 @@ export async function proxy(req: NextRequest) {
             return NextResponse.redirect(loginUrl);
         }
     }
+
+    if (pathname.startsWith('/portal')) {
+      const clientSession = req.cookies.get('client_session');
+
+      if (!clientSession){
+          const homeURL = new URL('/', req.url)
+          return NextResponse.redirect(homeURL)
+      }
+
+      return NextResponse.next()
+    }
     return NextResponse.next();
 }

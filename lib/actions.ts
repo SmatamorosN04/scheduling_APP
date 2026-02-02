@@ -5,6 +5,7 @@ import {ObjectId} from "bson";
 import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
 import {any} from "prop-types";
 import {start} from "node:repl";
+import {cookies} from "next/dist/server/request/cookies";
 export async function getAppointments() {
     try {
         const client = await clientPromise;
@@ -46,6 +47,14 @@ export async function createAppointment(formData: FormData) {
     const client = await clientPromise;
     const db = client.db('scheduling_App');
 
+    const session = (await cookies()).get('client_session');
+
+    if (!session){
+        return {error: "Not Exist active Session"}
+    }
+
+    const clientIdentifier = session.value;
+
     const rawDate = formData.get('selectedDate') as string;
     const cleanDate = rawDate.split('T')[0];
 
@@ -78,7 +87,8 @@ export async function createAppointment(formData: FormData) {
             clientName: formData.get('name'),
             direction: formData.get('address'),
             title: formData.get('service'),
-            phone_number: formData.get('phone'),
+            clientEmail: clientIdentifier.includes('@') ? clientIdentifier: null,
+            phone_number: clientIdentifier.includes('@') ? clientIdentifier : formData.get('phone'),
             color_hex: SERVICE_COLORS[formData.get('service') as string] || "#39b82a",
             start_num: sH,
             finish_num: eH
