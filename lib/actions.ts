@@ -55,6 +55,9 @@ export async function createAppointment(formData: FormData) {
 
     const clientIdentifier = session.value;
 
+    const mediaRaw = formData.get('media') as string;
+    const mediaFiles = mediaRaw ? JSON.parse(mediaRaw) : [];
+
     const rawDate = formData.get('selectedDate') as string;
     const cleanDate = rawDate.split('T')[0];
 
@@ -88,13 +91,16 @@ export async function createAppointment(formData: FormData) {
             direction: formData.get('address'),
             title: formData.get('service'),
             clientEmail: clientIdentifier.includes('@') ? clientIdentifier: null,
-            phone_number: clientIdentifier.includes('@') ? clientIdentifier : formData.get('phone'),
+            phone_number: !clientIdentifier.includes('@') ? clientIdentifier : formData.get('phone'),
+            evidence: mediaFiles,
+
             color_hex: SERVICE_COLORS[formData.get('service') as string] || "#39b82a",
             start_num: sH,
             finish_num: eH
         });
 
         revalidatePath('/dashboard');
+        revalidatePath('/portal')
         return { success: true };
     } catch (e) { return { error: "Error" }; }
 }

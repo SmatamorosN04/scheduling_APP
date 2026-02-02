@@ -79,13 +79,17 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
                     <form action={async (formData: FormData) => {
                         setIsPending(true);
                         setError(null);
+                        formData.append('media', JSON.stringify(mediaFiles))
+
                         const result = await createAppointment(formData);
+
                         if (result && result.error) {
                             setError(result.error);
                             setIsPending(false);
                         } else {
                             setIsSubmitted(true);
                         }
+
                     }} className="space-y-8">
 
                         <input type="hidden" name="service" value={serviceTitle} />
@@ -128,6 +132,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate}: Servi
                                         });
                                         alert('Media uploaded Successfully')
                                     }}
+
                                     onUploadError={(error: Error) => {
                                         setError(`Upload error: ${error.message}`);
                                     }}
