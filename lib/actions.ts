@@ -60,10 +60,12 @@ export async function createAppointment(formData: FormData) {
 
     const sessionData = await decrypt(session.value);
 
-    const clientIdentifier = session.value;
+    if (!sessionData) {
+        return { error: "Invalid or expired session" };
+    }
+
     const userName = formData.get('name') as string;
     const service = formData.get('service') as string;
-    // @ts-ignore
     const userEmail = sessionData.email as string;
 
     const mediaRaw = formData.get('media') as string;
@@ -120,7 +122,7 @@ export async function createAppointment(formData: FormData) {
                 subject: "- Ariel's Scheduling App",
                 html: `
                     <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-                        <h2 style="color: #39b82a;">¡Hello ${name}!</h2>
+                        <h2 style="color: #39b82a;">¡Hello ${userName}!</h2>
                         <p>Your Request was received <strong>${service}</strong>.</p>
                         <hr style="border: none; border-top: 1px solid #eee;" />
                         <p><strong>Request detail</strong></p>
