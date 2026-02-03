@@ -5,7 +5,6 @@ import {deleteAppointment, getAppointments, updateAppointment} from "@/lib/actio
 import Header from "@/app/components/header/header";
 import ArielCalendar from "@/app/components/Calendar/calendar";
 import moment from "moment";
-import TaskStatusView from "@/app/components/TaskStatusView/TaskStatusView";
 import StatusController from "@/app/components/StatusController/StatusController";
 
 export default function Dashboard() {
@@ -141,11 +140,16 @@ export default function Dashboard() {
         <div className='flex flex-col min-h-screen bg-[#F2EFDF] font-sans overflow-x-hidden'>
             <Header />
 
-            <main className='flex-1 flex flex-row items-center justify-start p-4 pt-28 pb-10'>
-=            {/*  <TaskStatusView onSelectEvent={handleSelectEvent}
-                               refreshTrigger={refreshCounter} onStatusChange={function (event: any): void {
+            <main className='flex-1 flex flex-col items-center justify-start p-4 pt-28 pb-10'>
+              {/*  <div className='w-full max-w-6xl mb-8'>
+                    <p className='text-xs font-black uppercase text-black/40 -tracking-tight mb-4 ml-2'>
+                        Operational Pipeline
+                    </p>
+                    <TaskStatusView
+                    appointments={events}
+                    />
+                </div>*/}
 
-            }}            />*/}
                 <div className='w-full max-w-6xl bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
                     {loading ? (
                         <div className='h-[70vh] flex items-center justify-center text-black font-black uppercase tracking-widest'>

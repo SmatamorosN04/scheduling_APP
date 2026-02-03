@@ -5,7 +5,6 @@ import {ObjectId} from "bson";
 import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
 import {cookies} from "next/dist/server/request/cookies";
 import ALLOWED_TRANSITION, {AppointmentStatus} from "@/lib/appointment-logic";
-import {sendEmail} from "@/lib/mail";
 import {decrypt} from "@/lib/session";
 import nodemailer from "nodemailer";
 
@@ -360,6 +359,83 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
             { $set: fieldsToUpdate}
         );
 
+        const statusWithNotifications = ['Confirmed', 'On-Route', 'Cancelled'];
+
+        const targetEmail = currentAppointment.clientEmail || currentAppointment.userEmail;
+        const targetName = currentAppointment.userName || "Customer";
+
+        if (statusWithNotifications.includes(nextStatus) && targetEmail) {
+            try {
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.GMAIL_USER,
+                        pass: process.env.GMAIL_PASS
+                    }
+                });
+
+                const color = nextStatus === 'Confirmed' ? '#39b82a' : nextStatus === 'On-Route' ? '#007bff' : '#dc3545';
+
+                await transporter.sendMail({
+                    from: `"Ariel's Scheduling App" <${process.env.GMAIL_USER}>`,
+                    to: targetEmail,
+                    subject: `Update: Appointment ${nextStatus}`,
+                    html: `
+<div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 20px auto; color: #333; border: 1px solid #efefef; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    
+    <div style="background-color: #ffffff; padding: 30px 25px; border-bottom: 4px solid ${color}; text-align: center;">
+        <h2 style="margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #888;">Service Update</h2>
+        <h1 style="margin: 10px 0 0 0; font-size: 24px; color: #1a1a1a; font-weight: 700;">${nextStatus}</h1>
+    </div>
+
+    <div style="padding: 40px 35px; background-color: #ffffff;">
+        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5;">
+            Hello <strong>${targetName}</strong>,
+        </p>
+        <p style="margin: 0 0 30px 0; font-size: 15px; color: #555; line-height: 1.6;">
+            We are writing to inform you that the status of your service request has been updated. Below are the current details of your appointment:
+        </p>
+
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border: 1px solid #f0f0f0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #777; font-size: 13px; width: 100px;">Service</td>
+                    <td style="padding: 8px 0; font-weight: 600; color: #1a1a1a;">${currentAppointment.service}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #777; font-size: 13px;">Date</td>
+                    <td style="padding: 8px 0; font-weight: 600; color: #1a1a1a;">${currentAppointment.date}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #777; font-size: 13px;">Status</td>
+                    <td style="padding: 8px 0;">
+                        <span style="background-color: ${color}20; color: ${color}; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 700; border: 1px solid ${color}40;">
+                            ${nextStatus.toUpperCase()}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p style="margin: 30px 0 0 0; font-size: 14px; color: #888; text-align: center; font-style: italic;">
+            If you have any questions regarding this update, please feel free to contact us.
+        </p>
+    </div>
+
+    <div style="background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #eee;">
+        <p style="margin: 0; font-size: 12px; color: #aaa; line-height: 1.4;">
+            &copy; 2026 Ariel's Tech Service. All rights reserved.<br>
+            This is an automated message, please do not reply directly to this email.
+        </p>
+    </div>
+</div>
+`
+                });
+                console.log(" Email sent successfully to:", targetEmail);
+            } catch (mailError) {
+                console.error(" Nodemailer failed:", mailError);
+            }
+        }
         revalidatePath('/admin');
         return { success: true}
     } catch (error) {
