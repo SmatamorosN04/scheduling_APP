@@ -1,74 +1,65 @@
 'use client'
-import { useState } from "react";
-import { updateAppointment } from "@/lib/actions";
 
-interface StatusControllerProps {
-    appointmentId: string;
-    currentStatus: string;
-    onStatusChange: () => void;
-}
+import ALLOWED_TRANSITION, {AppointmentStatus} from "@/lib/appointment-logic";
+import {useState} from "react";
+import {updateAppointmentStatus} from "@/lib/actions";
 
-export default function StatusController({ appointmentId, currentStatus, onStatusChange }: StatusControllerProps) {
-    const [isUpdating, setIsUpdating] = useState(false);
+export default function StatusController({ id, currentStatus, onUpdate}: {id: string, currentStatus: AppointmentStatus, onUpdate?: () => void}){
+    const [loading, setLoading] = useState(false);
 
-    const statuses = [
-        { id: 'pending', label: 'Pending', color: 'bg-amber-400' },
-        { id: 'in-progress', label: 'In Progress', color: 'bg-blue-500' },
-        { id: 'completed', label: 'Completed', color: 'bg-emerald-500' },
-        { id: 'cancelled', label: 'Cancelled', color: 'bg-red-500' },
-        { id: 'no-show', label: 'No Show', color: 'bg-zinc-500' }
-    ];
+    const nextStep = ALLOWED_TRANSITION[currentStatus];
 
-    const handleUpdate = async (newStatus: string) => {
-        if (newStatus === currentStatus || isUpdating) return;
-
-        setIsUpdating(true);
-        try {
-            const formData = new FormData();
-            formData.append('status', newStatus);
-
-
-            const res = await updateAppointment(appointmentId, formData);
-
-            if (res && res.success) {
-                onStatusChange();
-            } else {
-                console.error("Server error:", res?.error);
-            }
-        } catch (error) {
-            console.error("Error updating status:", error);
-        } finally {
-            setIsUpdating(false);
+    const handleUpdate = async (next: AppointmentStatus) => {
+        setLoading(true);
+        const res = await updateAppointmentStatus(id, next);
+        if (res.success) {
+            if (onUpdate) onUpdate();
+        }else {
+            alert(res.error)
         }
+        setLoading(false)
     };
 
+    if (nextStep.length === 0){
+        return <span className='text-gray-600 font-medium'>Proccess ended</span>
+    }
+
     return (
-        <div className="flex flex-col gap-3 mt-6 p-5 bg-gray-50/50 rounded-[32px] border border-black/5">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-black/20 ml-2">
-                Status Control {isUpdating && "— Updating..."}
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-                {statuses.map((s) => {
-                    const isActive = currentStatus === s.id;
-                    return (
-                        <button
-                            key={s.id}
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleUpdate(s.id)}
-                            className={`
-                                py-3 px-2 rounded-[18px] text-[9px] font-black uppercase transition-all duration-300
-                                ${isActive
-                                ? `${s.color} text-white shadow-lg shadow-black/10 scale-100 ring-2 ring-offset-2 ring-black/5`
-                                : 'bg-white text-black/40 border border-black/5 hover:border-black/20 opacity-60 hover:opacity-100'}
-                                ${isUpdating ? 'cursor-not-allowed opacity-50' : 'cursor-pointer active:scale-95'}
-                            `}
-                        >
-                            {s.label}
-                        </button>
-                    );
-                })}
-            </div>
+        <div className='flex gap-2'>
+            {nextStep.map((step) => (
+                <button
+                key={step}
+                disabled={loading}
+                onClick={() => handleUpdate(step)}
+                className={`px-4 py-2 rounded-lg font-bold transition-all ${getStatusStyle(step)}`}
+                >
+                    {!loading ? getLabel(step) : '...'}
+                </button>
+            ))}
         </div>
     );
+};
+
+function getLabel(status: AppointmentStatus){
+    const labels: Record<AppointmentStatus, string> = {
+        'pending' : 'Pending Review',
+        'Confirmed': 'confirm Request',
+        'On-Route': 'On the Road',
+        'In-Progress': 'working in this moment',
+        'Finished': 'Finish Work',
+        'Cancelled': 'Cancel request'
+    };
+    return  labels[status] || status ;
+}
+
+function getStatusStyle(status: AppointmentStatus){
+    const styles: Record<AppointmentStatus, string> = {
+         'pending' : 'bg-yellow-300 text-black hover:bg0-yellow-700',
+        'Confirmed': 'bg-blue-600 text-white hover:bg-blue-700',
+        'On-Route': 'bg-orange-500 text-white hover:bg-orange-700',
+        'In-Progress': 'bg-purple-600 text-white hover:bg-purple-700',
+        'Finished': 'bg-green-500 text-white hover:bg-green-700',
+        'Cancelled': 'bg-red-200 text-red-600 hover:bg-red-700 hover:text-white'
+    };
+    return  styles[status] ||'bg-gray-300'
 }

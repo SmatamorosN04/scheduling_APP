@@ -39,7 +39,7 @@ export async function loginClient(email: string) {
             html: `
                 <div style="font-family: sans-serif; text-align: center; border: 1px solid #eee; padding: 20px;">
                     <h2>Código de Verificación</h2>
-                    <p>Usa el siguiente código para Hacerte una paja</p>
+                    <p>Use the next code to verification of your account</p>
                     <h1 style="background: #f4f4f4; padding: 10px; display: inline-block; letter-spacing: 5px;">${code}</h1>
                     <p style="font-size: 12px; color: #888;">Este código expira en 10 minutos.</p>
                 </div>
@@ -71,12 +71,12 @@ export async function verifyCodeAction(identifier: string, code: string) {
 
         await db.collection('verifications').deleteOne({ _id: record._id });
 
-        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días
-        const session = await encrypt({ identifier, expires }); // Tu lógica de JWT
+        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const session = await encrypt({ email: identifier, expires });
 
         (await cookies()).set('client_session', session, {
             expires,
-            httpOnly: true,
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
         });

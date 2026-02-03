@@ -142,10 +142,10 @@ export default function Dashboard() {
             <Header />
 
             <main className='flex-1 flex flex-row items-center justify-start p-4 pt-28 pb-10'>
-=              <TaskStatusView onSelectEvent={handleSelectEvent}
+=            {/*  <TaskStatusView onSelectEvent={handleSelectEvent}
                                refreshTrigger={refreshCounter} onStatusChange={function (event: any): void {
 
-            }}            />
+            }}            />*/}
                 <div className='w-full max-w-6xl bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
                     {loading ? (
                         <div className='h-[70vh] flex items-center justify-center text-black font-black uppercase tracking-widest'>
@@ -197,12 +197,23 @@ export default function Dashboard() {
                                             <span className="text-[10px] font-black bg-black text-white px-4 py-2 rounded-full uppercase tracking-tighter">
                                                 {moment(selectedEvent.start).format('hh:mm A')} — {moment(selectedEvent.end).format('hh:mm A')}
                                             </span>
+
                                         </div>
                                     </div>
                                 </div>
+                                <p className="text-[10px] font-black uppercase text-black/40 tracking-widest mb-2">Current Status Action</p>
+
+                                <StatusController
+                                    id={selectedEvent.id || selectedEvent._id}
+                                    currentStatus={selectedEvent.status || 'pending'}
+                                    onUpdate={() => {
+                                        loadEvents();
+                                        setIsSidebarOpen(false);
+                                    }}
+                                />
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="w-full py-4 mb-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-800 transition-all active:scale-95 shadow-lg shadow-black/10"
+                                    className="w-full py-4 mb-4 mt-5 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-800 transition-all active:scale-95 shadow-lg shadow-black/10"
                                 >
                                     Edit Information
                                 </button>
@@ -275,16 +286,7 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                                 <div>
-                                    <StatusController
-                                    appointmentId={selectedEvent.id}
-                                    currentStatus={selectedEvent.status}
-                                    onStatusChange={() => {
-                                        loadEvents();
-                                        triggerRefresh()
 
-
-                                    }}
-                                    />
                                 </div>
                                 <div className="flex gap-3 pt-4">
                                     <button

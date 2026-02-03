@@ -29,7 +29,6 @@ export default function UserLoginForm() {
             setStep(2)
             setStatus('idle')
         } else {
-            // IMPORTANTE: Resetear a idle para que el botón se reactive si falla
             setStatus('idle')
             alert('No se pudo enviar el correo. Revisa si es un destinatario autorizado.')
         }

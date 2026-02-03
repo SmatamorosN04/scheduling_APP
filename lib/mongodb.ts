@@ -16,5 +16,16 @@ export default clientPromise
 export async function connectToDatabase() {
     const client = await clientPromise;
     const db = client.db(dbName || "scheduling_App");
+
+    try {
+        await db.collection('verification_codes').createIndex(
+            {"expiresAt": 1},
+            { expireAfterSeconds: 0}
+        )
+    }catch (e) {
+        console.error("Error al asegurar el índice TTL:", e);
+    }
+
     return { client, db };
 }
+

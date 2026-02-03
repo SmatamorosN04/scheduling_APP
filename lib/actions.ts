@@ -3,10 +3,10 @@ import clientPromise from '@/lib/mongodb'
 import {SERVICE_COLORS} from "@/lib/constants";
 import {ObjectId} from "bson";
 import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
-
 import {cookies} from "next/dist/server/request/cookies";
-import { sendWhatsAppVerification } from "@/lib/Whatsapp";
-import {Db, MongoClient} from "mongodb";
+import ALLOWED_TRANSITION, {AppointmentStatus} from "@/lib/appointment-logic";
+import {sendEmail} from "@/lib/mail";
+import {decrypt} from "@/lib/session";
 
 
 
@@ -58,7 +58,13 @@ export async function createAppointment(formData: FormData) {
         return {error: "Not Exist active Session"}
     }
 
+    const sessionData = await decrypt(session.value);
+
     const clientIdentifier = session.value;
+    const userName = formData.get('name') as string;
+    const service = formData.get('service') as string;
+    // @ts-ignore
+    const userEmail = sessionData.email as string;
 
     const mediaRaw = formData.get('media') as string;
     const mediaFiles = mediaRaw ? JSON.parse(mediaRaw) : [];
@@ -86,7 +92,7 @@ export async function createAppointment(formData: FormData) {
 
         if (overlapping) return { error: "Horario ocupado" };
 
-        await db.collection('appointments').insertOne({
+        const result = await db.collection('appointments').insertOne({
 
             status: 'pending',
             createdAt: new Date(),
@@ -99,14 +105,37 @@ export async function createAppointment(formData: FormData) {
             clientName: formData.get('name'),
             direction: formData.get('address'),
             title: formData.get('service'),
-            clientEmail: clientIdentifier.includes('@') ? clientIdentifier: null,
-            phone_number: !clientIdentifier.includes('@') ? clientIdentifier : formData.get('phone'),
+            clientEmail: userEmail,
+            phone_number: formData.get('phone'),
             evidence: mediaFiles,
 
             color_hex: SERVICE_COLORS[formData.get('service') as string] || "#39b82a",
             start_num: sH,
             finish_num: eH
         });
+        if (result.insertedId && userEmail) {
+
+            await sendEmail({
+                to: userEmail,
+                subject: "- Ariel's Scheduling App",
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                        <h2 style="color: #39b82a;">¡Hello ${name}!</h2>
+                        <p>Your Request was received <strong>${service}</strong>.</p>
+                        <hr style="border: none; border-top: 1px solid #eee;" />
+                        <p><strong>Request detail</strong></p>
+                        <ul>
+                            <li><strong>Fecha:</strong> ${cleanDate}</li>
+                            <li><strong>Horario:</strong> ${startFormatted} - ${finishFormatted}</li>
+                        </ul>
+                        <p style="background: #fdf6b2; padding: 10px; border-radius: 5px;">
+                            📍 <strong>Estado:</strong> Pending ariel confirmation
+                        </p>
+                        <p style="font-size: 0.8em; color: #777;">You will receive another email as soon as your appointment is confirmed.</p>
+                    </div>
+                `
+            });
+        }
 
         revalidatePath('/dashboard');
         revalidatePath('/portal')
@@ -235,15 +264,56 @@ export async function updateAppointment(id: string, formData: FormData) {
 }
 
 
-export async function requestLoginCode(formData: FormData) {
-    const phone = formData.get('phone') as string;
+export async function  updateAppointmentStatus(id: string, nextStatus: AppointmentStatus){
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
 
+    try{
+        const currentAppointment = await db.collection('appointments').findOne({
+            _id: new ObjectId(id)
+        });
 
-    const result = await sendWhatsAppVerification(phone, code);
+        if (!currentAppointment) return {error: "Appointment not Found"};
 
-    if (result.success) return { success: true };
-    return { error: "Failed to send code" };
+        const currentStatus = (currentAppointment.status || 'pending') as AppointmentStatus;
+
+        if (nextStatus !== currentStatus){
+            if (!ALLOWED_TRANSITION[currentStatus].includes(nextStatus)) {
+                return { error: `Forbidden move: ${currentStatus} -> ${nextStatus}`};
+            }
+        }
+
+        const now = new Date();
+        const fieldsToUpdate: any ={
+            status: nextStatus,
+            updateAt: now
+        };
+
+        const timestampMap: Record<string, string> = {
+            'pending': 'pendiingAt',
+            'Confirmed': 'confirmedAt',
+            'On-Route': 'onRouteAt',
+            'In-Progress': 'startedAt',
+            'Finished': 'completedAt',
+            'Cancelled' : 'cancelledAt'
+        };
+
+        const specificTimestampField = timestampMap[nextStatus];
+        if (specificTimestampField) {
+            fieldsToUpdate[specificTimestampField] = now;
+        }
+
+        await  db.collection('appointments').updateOne(
+            {_id: new ObjectId(id)},
+            { $set: fieldsToUpdate}
+        );
+
+        revalidatePath('/admin');
+        return { success: true}
+    } catch (error) {
+        console.error("Update Error:", error);
+        return { error: "Error updating status" };
+    }
 }
 
