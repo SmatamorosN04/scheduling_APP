@@ -3,9 +3,13 @@ import clientPromise from '@/lib/mongodb'
 import {SERVICE_COLORS} from "@/lib/constants";
 import {ObjectId} from "bson";
 import {revalidatePath} from "next/dist/server/web/spec-extension/revalidate";
-import {any} from "prop-types";
-import {start} from "node:repl";
+
 import {cookies} from "next/dist/server/request/cookies";
+import { sendWhatsAppVerification } from "@/lib/Whatsapp";
+import {Db, MongoClient} from "mongodb";
+
+
+
 export async function getAppointments() {
     try {
         const client = await clientPromise;
@@ -228,5 +232,18 @@ export async function updateAppointment(id: string, formData: FormData) {
     } catch (error) {
         return { error: "Error al actualizar" };
     }
+}
+
+
+export async function requestLoginCode(formData: FormData) {
+    const phone = formData.get('phone') as string;
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+
+    const result = await sendWhatsAppVerification(phone, code);
+
+    if (result.success) return { success: true };
+    return { error: "Failed to send code" };
 }
 

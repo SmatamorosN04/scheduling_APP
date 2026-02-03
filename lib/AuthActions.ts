@@ -1,52 +1,104 @@
-'use server'
+"use server"
 
-import clientPromise from "@/lib/mongodb";
+import clientPromise, {connectToDatabase} from "@/lib/mongodb";
 import { cookies } from "next/headers";
+import { encrypt } from "@/lib/session";
 import {redirect} from "next/dist/client/components/redirect";
+import nodemailer from "nodemailer";
 
-export async function loginCLient(identifier: string) {
-    const client = await clientPromise;
-    const db = client.db('scheduling_App');
-    const lowerIdentifier = identifier.toLowerCase();
+export async function loginClient(email: string) {
+    try {
+        const { db } = await connectToDatabase();
+        const cleanEmail = email.trim().toLowerCase();
 
-    let user = await db.collection('clients').findOne({
-        $or: [
-            { email: lowerIdentifier },
-            { phone: identifier }
-        ]
-    });
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-    let isNew = false;
+        await db.collection("verification_codes").updateOne(
+            { identifier: cleanEmail },
+            {
+                $set: {
+                    identifier: cleanEmail,
+                    code: code,
+                    expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+                }
+            },
+            { upsert: true }
+        );
 
-    if (!user) {
-        const newUser = {
-            email: identifier.includes('@') ? lowerIdentifier : null,
-            phone: !identifier.includes('@') ? identifier : null,
-            createdAt: new Date(),
-            role: 'client'
-        };
-        const result = await db.collection('clients').insertOne(newUser);
-        user = { ...newUser, _id: result.insertedId };
-        isNew = true;
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_PASS,
+            },
+        });
+        await transporter.sendMail({
+            from: `"Seguridad Portal" <${process.env.GMAIL_USER}>`,
+            to: cleanEmail,
+            subject: 'Your Access code for entry to your portal ',
+            html: `
+                <div style="font-family: sans-serif; text-align: center; border: 1px solid #eee; padding: 20px;">
+                    <h2>Código de Verificación</h2>
+                    <p>Usa el siguiente código para Hacerte una paja</p>
+                    <h1 style="background: #f4f4f4; padding: 10px; display: inline-block; letter-spacing: 5px;">${code}</h1>
+                    <p style="font-size: 12px; color: #888;">Este código expira en 10 minutos.</p>
+                </div>
+            `,
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error en loginClient:", error);
+        return { success: false, error: "No se pudo enviar el correo" };
     }
+}
 
-    const cookieStore = await cookies();
-    cookieStore.set('client_session', identifier, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/'
-    });
 
-    return {
-        success: true,
-        isNew: isNew,
-        error: undefined
-    };
+export async function verifyCodeAction(identifier: string, code: string) {
+    try {
+        const client = await clientPromise;
+        const db = client.db('scheduling_App');
+
+        const record = await db.collection('verification_codes').findOne({
+            identifier,
+            code,
+            expiresAt: { $gt: new Date() }
+        });
+
+        if (!record) {
+            return { success: false, error: "Invalid or expired code" };
+        }
+
+        await db.collection('verifications').deleteOne({ _id: record._id });
+
+        const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días
+        const session = await encrypt({ identifier, expires }); // Tu lógica de JWT
+
+        (await cookies()).set('client_session', session, {
+            expires,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Verification Error:", error);
+        return { success: false, error: "Internal server error" };
+    }
 }
 
 export async function logoutClient() {
-    (await cookies()).delete('client_session')
-    redirect('/')
+    try {
+        const cookieStore = await cookies();
 
+        cookieStore.delete('client_session');
+
+        redirect('/');
+
+        return { success: true };
+    } catch (error) {
+        console.error("Logout Error:", error);
+        return { success: false, error: "Failed to log out" };
+    }
 }
