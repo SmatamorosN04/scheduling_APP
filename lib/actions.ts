@@ -32,6 +32,7 @@ export async function getAppointments() {
                 direction: app.direction,
                 phone_number: app.phone_number,
                 color_hex: app.color_hex,
+                status: app.status,
                 rawDate: app.date,
                 rawStart: app.start,
                 rawFinish: app.finish
@@ -82,6 +83,10 @@ export async function createAppointment(formData: FormData) {
         if (overlapping) return { error: "Horario ocupado" };
 
         await db.collection('appointments').insertOne({
+
+            status: 'pending',
+            createdAt: new Date(),
+            updatedAt: new Date(),
             date: cleanDate,
             start: startFormatted,
             finish: finishFormatted,
@@ -140,6 +145,8 @@ export async function updateAppointment(id: string, formData: FormData) {
     const phone = formData.get('phone') as string;
     const rawSelectedDate = formData.get('selectedDate') as string;
 
+    const status = formData.get('status') as string
+
     const sH = parseInt(formData.get('startTime') as string);
     const eH = parseInt(formData.get('endTime') as string);
 
@@ -159,29 +166,67 @@ export async function updateAppointment(id: string, formData: FormData) {
         if (overlapping) {
             return { error: "This hour is reserved by another client" };
         }
+        const fieldsToUpdate: any = {
+            title: service,
+            clientName: name,
+            direction: address,
+            phone_number: phone,
+            date: rawSelectedDate,
+            start: startTimeStr,
+            finish: finishTimeStr,
+            start_num: sH,
+            finish_num: eH,
+            updatedAt: new Date()
+        };
+
+        const fieldsToUnset: any = {};
+
+        if (status) {
+            fieldsToUpdate.status = status;
+            const now = new Date();
+
+            fieldsToUnset.pendingAt = "";
+            fieldsToUnset.startedAt = "";
+            fieldsToUnset.completedAt = "";
+            fieldsToUnset.cancelledAt = "";
+            fieldsToUnset.noShowAt = "";
+
+            switch (status) {
+                case 'pending':
+                    fieldsToUpdate.pendingAt = now;
+                    delete fieldsToUnset.pendingAt;
+                    break;
+                case 'in-progress':
+                    fieldsToUpdate.startedAt = now;
+                    delete fieldsToUnset.startedAt;
+                    break;
+                case 'completed':
+                    fieldsToUpdate.completedAt = now;
+                    delete fieldsToUnset.completedAt;
+                    break;
+                case 'cancelled':
+                    fieldsToUpdate.cancelledAt = now;
+                    delete fieldsToUnset.cancelledAt;
+                    break;
+                case 'no-show':
+                    fieldsToUpdate.noShowAt = now;
+                    delete fieldsToUnset.noShowAt;
+                    break;
+            }
+        }
 
         await db.collection('appointments').updateOne(
             { _id: new ObjectId(id) },
             {
-                $set: {
-                    title: service,
-                    clientName: name,
-                    direction: address,
-                    phone_number: phone,
-                    date: rawSelectedDate,
-                    start: startTimeStr,
-                    finish: finishTimeStr,
-                    start_num: sH,
-                    finish_num: eH
-                }
+                $set: fieldsToUpdate,
+                $unset: fieldsToUnset
             }
         );
 
-        revalidatePath('/admin');
+        revalidatePath('/dashboard');
         return { success: true };
-
-    } catch (error: any) {
-        console.error('Error al actualizar:', error);
-        return { error: "No se pudo actualizar la cita" };
+    } catch (error) {
+        return { error: "Error al actualizar" };
     }
 }
+

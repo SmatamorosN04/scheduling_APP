@@ -5,13 +5,16 @@ import {deleteAppointment, getAppointments, updateAppointment} from "@/lib/actio
 import Header from "@/app/components/header/header";
 import ArielCalendar from "@/app/components/Calendar/calendar";
 import moment from "moment";
+import TaskStatusView from "@/app/components/TaskStatusView/TaskStatusView";
+import StatusController from "@/app/components/StatusController/StatusController";
 
 export default function Dashboard() {
     const [events, setEvents] = useState<any[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+    const [refreshCounter, setRefreshCounter] = useState(0);
+    const triggerRefresh = () => setRefreshCounter(prev => prev + 1);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({
         service: "",
@@ -20,7 +23,8 @@ export default function Dashboard() {
         phone: "",
         date: "",
         startTime: "",
-        endTime: ""
+        endTime: "",
+        status: ""
     })
 
     const Services = [
@@ -58,8 +62,8 @@ export default function Dashboard() {
             phone: event.phone_number || "",
             date: moment(event.start).format('YYYY-MM-DD'),
             startTime: moment(event.start).format('H'),
-            endTime: moment(event.finish).format('H')
-
+            endTime: moment(event.finish).format('H'),
+            status: event.status || 'pending'
         })
     };
 
@@ -70,6 +74,7 @@ export default function Dashboard() {
         if (confirmDelete) {
             const result = await deleteAppointment(selectedEvent.id);
             if (result && result.success) {
+                triggerRefresh();
                 setIsSidebarOpen(false);
                 setSelectedEvent(null);
                 loadEvents();
@@ -103,18 +108,27 @@ export default function Dashboard() {
         formData.append('selectedDate', editForm.date);
         formData.append('startTime', editForm.startTime);
         formData.append('endTime', editForm.endTime);
-
+        formData.append('status', editForm.status)
         try {
             const result = await updateAppointment(appointmentId, formData) as { success?: boolean; error?: string };
 
             if (result && result.success) {
+
+                setSelectedEvent((prev:any) => ({
+                    ...prev,
+                    ...Object.fromEntries(formData),
+                    title: formData.get('service'),
+                    clientName: formData.get('name'),
+                    direction: formData.get('address'),
+                    status: editForm.status
+                }));
+                await loadEvents();
+                triggerRefresh();
                 alert('¡Cita actualizada con éxito!');
                 setIsEditing(false);
                 setIsSidebarOpen(false);
 
                 await loadEvents();
-
-                setSelectedEvent(null);
             } else {
                 alert(result?.error || "Ocurrió un error inesperado al actualizar");
             }
@@ -127,8 +141,12 @@ export default function Dashboard() {
         <div className='flex flex-col min-h-screen bg-[#F2EFDF] font-sans overflow-x-hidden'>
             <Header />
 
-            <main className='flex-1 flex flex-col items-center justify-start p-4 pt-28 pb-10'>
-=                <div className='w-full max-w-6xl bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
+            <main className='flex-1 flex flex-row items-center justify-start p-4 pt-28 pb-10'>
+=              <TaskStatusView onSelectEvent={handleSelectEvent}
+                               refreshTrigger={refreshCounter} onStatusChange={function (event: any): void {
+
+            }}            />
+                <div className='w-full max-w-6xl bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
                     {loading ? (
                         <div className='h-[70vh] flex items-center justify-center text-black font-black uppercase tracking-widest'>
                             Loading Agenda...
@@ -159,8 +177,10 @@ export default function Dashboard() {
                 {selectedEvent && (
                     <div className="flex-grow flex flex-col overflow-y-auto pr-2 custom-scrollbar">
                         {!isEditing ? (
+
                             <div className="flex-grow flex flex-col">
-                                <div className="mb-8 p-6 rounded-[32px] border-l-[10px]" style={{ backgroundColor: `${selectedEvent.color_hex}15`, borderColor: selectedEvent.color_hex }}>
+
+                                <div className="mb-8 p-6 rounded-4xl border-l-10" style={{ backgroundColor: `${selectedEvent.color_hex}15`, borderColor: selectedEvent.color_hex }}>
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/30">Appointment</span>
                                     <h3 className="text-xl font-black uppercase leading-tight mt-1 mb-6">{selectedEvent.title}</h3>
 
@@ -254,6 +274,18 @@ export default function Dashboard() {
                                         </select>
                                     </div>
                                 </div>
+                                <div>
+                                    <StatusController
+                                    appointmentId={selectedEvent.id}
+                                    currentStatus={selectedEvent.status}
+                                    onStatusChange={() => {
+                                        loadEvents();
+                                        triggerRefresh()
+
+
+                                    }}
+                                    />
+                                </div>
                                 <div className="flex gap-3 pt-4">
                                     <button
                                         onClick={handleUpdate}
@@ -285,3 +317,5 @@ export default function Dashboard() {
         </div>
     )
 }
+
+
