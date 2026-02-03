@@ -1,4 +1,5 @@
 import {createUploadthing, type FileRouter} from "uploadthing/next";
+import clientPromise from "@/lib/mongodb";
 
 
 const f = createUploadthing();
@@ -13,9 +14,27 @@ export const ourFileRouter = {
             maxFileSize: "64MB", maxFileCount: 1
         }
     })
-        .onUploadComplete(async ({ metadata, file }) => {
-            console.log("Archivo subido en:", file.url);
-            return { uploadedBy: "Client", url: file.url, type: file.type };
+        .onUploadComplete(async ({ file }) => {
+            try {
+                const client = await clientPromise
+                const db = client.db('scheduling_App');
+
+                const mediaEntry = await db.collection('media_vault').insertOne({
+                    fileKey: file.key,
+                    mimeType: file.type,
+                    name: file.name,
+                    size: file.size,
+                    uploadedAt: new Date()
+                })
+
+                return{
+                    internalId: mediaEntry.insertedId.toString(),
+                    type: file.type
+                }
+
+            } catch (error){
+                throw new Error('failed saving the media ')
+            }
         }),
 } satisfies FileRouter;
 export type OurFileRouter = typeof  ourFileRouter;

@@ -167,11 +167,11 @@ export default function Dashboard() {
 
             {/* OVERLAY */}
             <div
-                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-60 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={() => setIsSidebarOpen(false)}
             />
 
-            <aside className={`fixed top-0 left-0 h-full w-full max-w-sm bg-white z-[70] shadow-[20px_0_50px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed top-0 left-0 h-full w-full max-w-sm bg-white z-70 shadow-[20px_0_50px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out p-8 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
                 <div className="flex justify-between items-center mb-10">
                     <h2 className="text-2xl font-black uppercase italic tracking-tighter text-black">Details</h2>
@@ -179,10 +179,10 @@ export default function Dashboard() {
                 </div>
 
                 {selectedEvent && (
-                    <div className="flex-grow flex flex-col overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grow flex flex-col overflow-y-auto pr-2 custom-scrollbar">
                         {!isEditing ? (
 
-                            <div className="flex-grow flex flex-col">
+                            <div className="grow flex flex-col">
 
                                 <div className="mb-8 p-6 rounded-4xl border-l-10" style={{ backgroundColor: `${selectedEvent.color_hex}15`, borderColor: selectedEvent.color_hex }}>
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/30">Appointment</span>

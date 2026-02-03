@@ -4,6 +4,10 @@ import {createAppointment} from "@/lib/actions";
 import Link from "next/dist/client/link";
 import { UploadButton } from "@/lib/uploadthing";
 
+interface MediaFile {
+    id: string;
+    type: string;
+}
 interface ServiceFormProps {
     serviceTitle: string;
     selectedDate: Date | null;
@@ -15,8 +19,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPending, setIsPending] = useState(false);
-    const [mediaFiles, setMediaFiles] = useState<{ url: string; type: string }[]>([]);
-    const startTimeDisplay = selectedDate ?  selectedDate.getHours(): '0';
+    const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);    const startTimeDisplay = selectedDate ?  selectedDate.getHours(): '0';
     const endTimeDisplay = endDate ? endDate.getHours() : "0";
 
     if(isSubmitted){
@@ -138,15 +141,21 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                 <div className='p-4 border-2 border-dashed border-gray-100 rounded-xl hover:border-orange-500/30 transition-colors bg-gray-50/30'>
                                     <UploadButton
                                     endpoint='serviceImageUploader'
-                                    onClientUploadComplete={(res: any) => {
-                                        const newFiles = res.map((f: { url: any; type: any; }) => ({ url: f.url, type: f.type }));
-                                        setMediaFiles((prev) => {
-                                            const combined = [...prev, ...newFiles];
-                                            return combined.slice(0,4)
-                                        });
-                                        alert('Media uploaded Successfully')
-                                    }}
+                                    onClientUploadComplete={(res) => {
+                                        if (!res) return;
 
+                                        const newFiles: MediaFile[] = res.map(file => {
+                                            if (!file.serverData) {
+                                                throw new Error("Missing server data");
+                                            }
+                                            const data = file.serverData as unknown as { internalId: string; type: string };                                            return {
+                                                id: data.internalId,
+                                                type: data.type
+                                            };
+                                        }).filter(Boolean) as { id: string; type: string }[];
+
+                                        setMediaFiles((prev: any) => [...prev, ...newFiles]);
+                                    }}
                                     onUploadError={(error: Error) => {
                                         setError(`Upload error: ${error.message}`);
                                     }}
@@ -162,7 +171,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
 
                                                     {file.type.startsWith('image') ? (
                                                         <img
-                                                            src={file.url}
+                                                            src={`/api/media/${file.id}`}
                                                             alt="Preview"
                                                             className="w-full h-full object-cover"
                                                         />
