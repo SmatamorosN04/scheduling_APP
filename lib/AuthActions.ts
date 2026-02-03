@@ -11,6 +11,18 @@ export async function loginClient(email: string) {
         const { db } = await connectToDatabase();
         const cleanEmail = email.trim().toLowerCase();
 
+        await db.collection("clients").updateOne(
+            { email: cleanEmail },
+            {
+                $setOnInsert: {
+                    email: cleanEmail,
+                    createdAt: new Date(),
+                    role: 'client'
+                }
+            },
+            { upsert: true }
+        );
+
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         await db.collection("verification_codes").updateOne(
