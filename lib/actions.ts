@@ -7,6 +7,7 @@ import {cookies} from "next/dist/server/request/cookies";
 import ALLOWED_TRANSITION, {AppointmentStatus} from "@/lib/appointment-logic";
 import {sendEmail} from "@/lib/mail";
 import {decrypt} from "@/lib/session";
+import nodemailer from "nodemailer";
 
 
 
@@ -60,13 +61,15 @@ export async function createAppointment(formData: FormData) {
 
     const sessionData = await decrypt(session.value);
 
+    console.log("SESSION DEBUG:", sessionData);
+
     if (!sessionData) {
         return { error: "Invalid or expired session" };
     }
 
     const userName = formData.get('name') as string;
     const service = formData.get('service') as string;
-    const userEmail = sessionData.email as string;
+    const userEmail = sessionData.email as string || sessionData.identifier as string;
 
     const mediaRaw = formData.get('media') as string;
     const mediaFiles = mediaRaw ? JSON.parse(mediaRaw) : [];
@@ -94,8 +97,7 @@ export async function createAppointment(formData: FormData) {
 
         if (overlapping) return { error: "Horario ocupado" };
 
-        const result = await db.collection('appointments').insertOne({
-
+       const result =  await db.collection('appointments').insertOne({
             status: 'pending',
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -115,34 +117,81 @@ export async function createAppointment(formData: FormData) {
             start_num: sH,
             finish_num: eH
         });
-        if (result.insertedId && userEmail) {
 
-            await sendEmail({
-                to: userEmail,
-                subject: "- Ariel's Scheduling App",
-                html: `
-                    <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-                        <h2 style="color: #39b82a;">¡Hello ${userName}!</h2>
-                        <p>Your Request was received <strong>${service}</strong>.</p>
-                        <hr style="border: none; border-top: 1px solid #eee;" />
-                        <p><strong>Request detail</strong></p>
-                        <ul>
-                            <li><strong>Fecha:</strong> ${cleanDate}</li>
-                            <li><strong>Horario:</strong> ${startFormatted} - ${finishFormatted}</li>
-                        </ul>
-                        <p style="background: #fdf6b2; padding: 10px; border-radius: 5px;">
-                            📍 <strong>Estado:</strong> Pending ariel confirmation
-                        </p>
-                        <p style="font-size: 0.8em; color: #777;">You will receive another email as soon as your appointment is confirmed.</p>
-                    </div>
-                `
-            });
-        }
+          if (result.insertedId && userEmail){
+              try{
+                  const transporter = nodemailer.createTransport({
+                      service: 'gmail',
+                      auth: {
+                          user: process.env.GMAIL_USER,
+                          pass: process.env.GMAIL_PASS
+                      }
+                  });
+                  await transporter.sendMail({
+                      from: `"Ariel's Scheduling App" <${process.env.GMAIL_USER}>`,
+                      to: userEmail,
+                      subject: "Ariel's Scheduling App",
+                      html: `
+                      <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+    <div style="background-color: #f8f9fa; padding: 25px; border-bottom: 4px solid #39b82a;">
+        <h1 style="margin: 0; font-size: 20px; color: #1a1a1a; letter-spacing: 0.5px;">
+            Service Request Confirmation
+        </h1>
+        <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">ID: ${result.insertedId.toString().slice(-6).toUpperCase()}</p>
+    </div>
+
+    <div style="padding: 30px;">
+        <p style="font-size: 16px; line-height: 1.5;">
+            Dear <strong>${userName}</strong>,
+        </p>
+        <p style="font-size: 15px; color: #555; line-height: 1.5;">
+            We have successfully received your service request for <strong>${service}</strong>. Our team is currently reviewing the details and will get back to you shortly.
+        </p>
+
+        <div style="margin: 25px 0; background-color: #ffffff; border: 1px solid #eee; border-radius: 6px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eee; color: #777; font-size: 13px; text-transform: uppercase;">Date</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: 600;">${cleanDate}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 15px; color: #777; font-size: 13px; text-transform: uppercase;">Time Slot</td>
+                    <td style="padding: 12px 15px; font-weight: 600;">${startFormatted} — ${finishFormatted}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <span style="background-color: #fff9db; color: #856404; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #ffeeba;">
+                STATUS: PENDING
+            </span>
+        </div>
+
+        <p style="font-size: 14px; color: #777; text-align: center; font-style: italic;">
+            No further action is required at this time. You will receive a notification once your appointment has been officially confirmed.
+        </p>
+    </div>
+
+    <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+        <p style="margin: 0; font-size: 12px; color: #999;">
+            &copy; 2026 Ariel's Tech Service. All rights reserved.<br>
+            This is an automated message, please do not reply directly to this email.
+        </p>
+    </div>
+</div>`,
+                  })
+
+              } catch (error){
+                    console.error('error sending create notification ')
+              }
+          }
+
 
         revalidatePath('/dashboard');
         revalidatePath('/portal')
         return { success: true };
-    } catch (e) { return { error: "Error" }; }
+    } catch (e) { return { error: "Error" };
+    }
 }
 
 export async function deleteAppointment(id: string){
