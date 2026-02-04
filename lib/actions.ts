@@ -61,7 +61,6 @@ export async function createAppointment(formData: FormData) {
 
     const sessionData = await decrypt(session.value);
 
-    console.log("SESSION DEBUG:", sessionData);
 
     if (!sessionData) {
         return { error: "Invalid or expired session" };
@@ -83,9 +82,15 @@ export async function createAppointment(formData: FormData) {
     const startFormatted = `${startTimeStr.padStart(2, '0')}:00`;
     const finishFormatted = `${finishTimeStr.padStart(2, '0')}:00`;
 
+
+
     try {
         const sH = parseInt(startTimeStr);
         const eH = parseInt(finishTimeStr);
+
+        const creationDate = new Date();
+        creationDate.setHours(creationDate.getHours() - 6 );
+
 
         const overlapping = await db.collection('appointments').findOne({
 
@@ -99,14 +104,13 @@ export async function createAppointment(formData: FormData) {
 
         if (overlapping) return { error: "Tihs Hours are Occupied" };
 
-       const result =  await db.collection('appointments').insertOne({
+
+        const result =  await db.collection('appointments').insertOne({
             status: 'pending',
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: creationDate,
             date: cleanDate,
             start: startFormatted,
             finish: finishFormatted,
-
             timestamp_start: `${cleanDate}T${startFormatted}:00`,
             clientName: formData.get('name'),
             direction: formData.get('address'),
@@ -114,10 +118,11 @@ export async function createAppointment(formData: FormData) {
             clientEmail: userEmail,
             phone_number: formData.get('phone'),
             evidence: mediaFiles,
-
             color_hex: SERVICE_COLORS[formData.get('service') as string] || "#39b82a",
             start_num: sH,
-            finish_num: eH
+            finish_num: eH,
+            sent24h: false,
+            sent1h: false
         });
 
           if (result.insertedId && userEmail){
@@ -240,6 +245,9 @@ export async function updateAppointment(id: string, formData: FormData) {
     const finishTimeStr = `${eH.toString().padStart(2, '0')}:00`;
 
     try {
+        const standarizedDate = new Date()
+        standarizedDate.setHours(standarizedDate.getHours() - 6)
+
         const overlapping = await db.collection('appointments').findOne({
             date: rawSelectedDate,
             _id: { $ne: new ObjectId(id) },
@@ -262,14 +270,15 @@ export async function updateAppointment(id: string, formData: FormData) {
             finish: finishTimeStr,
             start_num: sH,
             finish_num: eH,
-            updatedAt: new Date()
+            updatedAt: standarizedDate,
+            sent24h: false,
+            sent1h: false
         };
 
         const fieldsToUnset: any = {};
 
         if (status) {
             fieldsToUpdate.status = status;
-            const now = new Date();
 
             fieldsToUnset.pendingAt = "";
             fieldsToUnset.startedAt = "";
@@ -279,23 +288,23 @@ export async function updateAppointment(id: string, formData: FormData) {
 
             switch (status) {
                 case 'pending':
-                    fieldsToUpdate.pendingAt = now;
+                    fieldsToUpdate.pendingAt = standarizedDate;
                     delete fieldsToUnset.pendingAt;
                     break;
                 case 'in-progress':
-                    fieldsToUpdate.startedAt = now;
+                    fieldsToUpdate.startedAt = standarizedDate;
                     delete fieldsToUnset.startedAt;
                     break;
                 case 'completed':
-                    fieldsToUpdate.completedAt = now;
+                    fieldsToUpdate.completedAt = standarizedDate;
                     delete fieldsToUnset.completedAt;
                     break;
                 case 'cancelled':
-                    fieldsToUpdate.cancelledAt = now;
+                    fieldsToUpdate.cancelledAt = standarizedDate;
                     delete fieldsToUnset.cancelledAt;
                     break;
                 case 'no-show':
-                    fieldsToUpdate.noShowAt = now;
+                    fieldsToUpdate.noShowAt = standarizedDate;
                     delete fieldsToUnset.noShowAt;
                     break;
             }
@@ -405,10 +414,16 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
         }
 
         const now = new Date();
+        now.setHours(now.getHours() - 6)
         const fieldsToUpdate: any ={
             status: nextStatus,
             updateAt: now
         };
+
+        if (nextStatus === 'Confirmed') {
+            fieldsToUpdate.sent24h = false;
+            fieldsToUpdate.sent1h = false;
+        }
 
         const timestampMap: Record<string, string> = {
             'pending': 'pendiingAt',
@@ -587,3 +602,4 @@ export async function notifyAdmin(subject: string, details: string) {
         console.log('error notifying admin:', error)
     }
 }
+
