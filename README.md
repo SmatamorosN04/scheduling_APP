@@ -58,3 +58,4 @@ npm install -D tailwindcss postcss autoprefixer
 npm install react-big-calendar moment moment-timezone
 npm install mongoose mongodb
 npm install -D @types/react-big-calendar @types/node @types/react @types/react-dom
+ya esta turkeado esta mierda ahora si chambea
