@@ -7,6 +7,7 @@ import {cookies} from "next/dist/server/request/cookies";
 import ALLOWED_TRANSITION, {AppointmentStatus} from "@/lib/appointment-logic";
 import {decrypt} from "@/lib/session";
 import nodemailer from "nodemailer";
+import {redirect} from "next/dist/client/components/redirect";
 
 
 
@@ -68,7 +69,7 @@ export async function createAppointment(formData: FormData) {
 
     const userName = formData.get('name') as string;
     const service = formData.get('service') as string;
-    const userEmail = sessionData.email as string || sessionData.identifier as string;
+    const userEmail = (sessionData.email as string || sessionData.identifier as string).toLowerCase().trim();
 
     const mediaRaw = formData.get('media') as string;
     const mediaFiles = mediaRaw ? JSON.parse(mediaRaw) : [];
@@ -107,7 +108,7 @@ export async function createAppointment(formData: FormData) {
             timestamp_start: `${cleanDate}T${startFormatted}:00`,
             clientName: formData.get('name'),
             direction: formData.get('address'),
-            title: formData.get('service'),
+            title: service,
             clientEmail: userEmail,
             phone_number: formData.get('phone'),
             evidence: mediaFiles,
@@ -188,6 +189,7 @@ export async function createAppointment(formData: FormData) {
 
         revalidatePath('/dashboard');
         revalidatePath('/portal')
+        redirect('/portal');
         return { success: true };
     } catch (e) { return { error: "Error" };
     }
@@ -313,6 +315,65 @@ export async function updateAppointment(id: string, formData: FormData) {
     }
 }
 
+export async function getClientHistory(clientEmail: string){
+    try{
+        const client = await clientPromise;
+        const db = client.db('scheduling_App');
+
+        const normalizedEmail = clientEmail.toLowerCase().trim();
+
+        const history = await db.collection('appointments')
+            .find({ clientEmail: normalizedEmail})
+            .sort({ date: -1 })
+            .toArray();
+
+        return history.map(doc => ({
+            _id: doc._id.toString(),
+            title: doc.title,
+            status: doc.status,
+            date: doc.date,
+            start: doc.start,
+            color_hex: doc.color_hex
+        }));
+    } catch (error){
+        console.error("error getting the history", error)
+        return [];
+    }
+}
+
+export async function cancelAppointmentByClient(id: string){
+    try {
+        const client = await clientPromise;
+        const db = client.db('scheduling_App');
+
+        const appointment = await db.collection('appointments').findOne({
+            _id: new ObjectId(id)
+        });
+
+        if(!appointment) throw new Error('event not found ');
+
+        const validStates = ['pending', 'Confirmed'];
+        if (!validStates.includes(appointment.status)){
+            return{
+                success: false,
+                message: 'you dont have permission to delete the event, please contact Ariel'
+            };
+        }
+
+        await db.collection('appointments').updateOne(
+            {_id: new ObjectId(id)},
+            { $set: {
+                status: 'Cancelled',
+                    cancelledAt: new Date(),
+                    cancelledBy: 'client'
+                }}
+        );
+
+    }catch (error){
+        console.error('error cancel', error );
+        return {success: false, message: "Intern server Error"}
+    }
+}
 
 export async function  updateAppointmentStatus(id: string, nextStatus: AppointmentStatus){
 
@@ -443,4 +504,5 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
         return { error: "Error updating status" };
     }
 }
+
 

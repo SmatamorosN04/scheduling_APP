@@ -1,15 +1,28 @@
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
-import Link from "next/link"; // Importación estándar
+import Link from "next/link";
 import ServiceCard from "@/app/components/ServiceCard/ServiceCard";
 import LogoutClientButton from "@/app/components/LogoutClientButton/LogoutCLientButton";
 import {logoutClient} from "@/lib/AuthActions";
+import {Suspense} from "react";
+import HistoryList from "@/app/components/HistoryList/HistoryList";
+import {cookies} from "next/dist/server/request/cookies";
+import {decrypt} from "@/lib/session";
 
-export default function Portal() {
-    const mockHistory = [
-        { id: '1', service: 'Field Analysis', date: '24 Oct 2025', status: 'En Camino' },
-        { id: '2', service: 'Maintenance', date: '10 Sep 2025', status: 'Completado' },
-    ];
+export default async function Portal() {
+ const coockieStore = await cookies();
+ const sessionCookie = coockieStore.get('client_session');
+
+    if (!sessionCookie) {
+        return <div> Please, Log in to see your historical</div>
+    }
+    const sessionData = await decrypt(sessionCookie.value) as { email?: string; identifier?: string } | null;
+    const email: string = sessionData?.email || sessionData?.identifier || '';
+
+
+    if (!email) {
+        return <div> Session invalid. Please log in again.</div>
+    }
 
     return (
         <div className='min-h-screen flex flex-col bg-[#F2EFDF] text-black'>
@@ -21,7 +34,7 @@ export default function Portal() {
                 action={logoutClient}
             /></div>
 
-            <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12">
+            <main className="grow max-w-7xl mx-auto w-full px-6 py-12">
 
                 <header className="mb-8">
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-black/40">Request Service</span>
@@ -54,43 +67,14 @@ export default function Portal() {
                     </Link>
                 </div>
 
-                <section className="mt-12">
-                    <header className="mb-8">
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-black/40">Service History</span>
-                        <h2 className="text-4xl font-black uppercase italic tracking-tighter">Your Request</h2>
-                    </header>
+                <header className='mb-8'>
+                    <span className='text-sm font-black uppercase tracking-tighter text-black/40'>My historical request</span>
+                    <h2 className='text-4xl font-black uppercase italic tracking-tighter'>Service history</h2>
+                </header>
 
-                    <div className="bg-white border-2 border-black rounded-[40px] shadow-[10px_10px_0px_0px_rgba(0,0,0,0.05)] overflow-hidden">
-                        {mockHistory.length > 0 ? (
-                            <div className="divide-y-2 divide-black/5">
-                                {mockHistory.map((item) => (
-                                    <div key={item.id} className="p-8 flex flex-col md:flex-row justify-between items-center hover:bg-gray-50 transition-colors">
-                                        <div className="flex items-center gap-6">
-                                            <div className="bg-[#F2EFDF] p-4 rounded-2xl border-2 border-black font-black italic">
-                                                {item.service[0]}
-                                            </div>
-                                            <div>
-                                                <h4 className="text-xl font-black uppercase italic leading-none">{item.service}</h4>
-                                                <p className="text-[10px] font-bold opacity-40 mt-1 uppercase">{item.date}</p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 md:mt-0">
-                                            <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase border-2 
-                                                ${item.status === 'Completado' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-blue-100 border-blue-500 text-blue-700'}`}>
-                                                {item.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="p-20 text-center opacity-30 italic font-bold">
-                                No has solicitado servicios aún.
-                            </div>
-                        )}
-                    </div>
-                </section>
-
+                <Suspense fallback={<div className="p-10 border-2 border-dashed border-black/20 rounded-[40px] text-center font-bold italic opacity-50">Loading history...</div>}>
+                    <HistoryList email={email} />
+                </Suspense>
             </main>
 
             <Footer />
