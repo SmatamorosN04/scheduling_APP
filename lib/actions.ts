@@ -88,14 +88,16 @@ export async function createAppointment(formData: FormData) {
         const eH = parseInt(finishTimeStr);
 
         const overlapping = await db.collection('appointments').findOne({
+
             date: cleanDate,
+            status: { $ne: "Cancelled"},
             $and: [
                 { start_num: { $lt: eH } },
                 { finish_num: { $gt: sH } }
             ]
         });
 
-        if (overlapping) return { error: "Horario ocupado" };
+        if (overlapping) return { error: "Tihs Hours are Occupied" };
 
        const result =  await db.collection('appointments').insertOne({
             status: 'pending',
@@ -189,7 +191,6 @@ export async function createAppointment(formData: FormData) {
 
         revalidatePath('/dashboard');
         revalidatePath('/portal')
-        redirect('/portal');
         return { success: true };
     } catch (e) { return { error: "Error" };
     }
@@ -333,6 +334,7 @@ export async function getClientHistory(clientEmail: string){
             status: doc.status,
             date: doc.date,
             start: doc.start,
+            finish: doc.finish,
             color_hex: doc.color_hex
         }));
     } catch (error){
@@ -368,6 +370,13 @@ export async function cancelAppointmentByClient(id: string){
                     cancelledBy: 'client'
                 }}
         );
+
+        await notifyAdmin(
+            `Cancelled: ${appointment.title}`,
+            `The client <b>${appointment.clientName}</b>`
+        );
+
+        revalidatePath('/portal')
 
     }catch (error){
         console.error('error cancel', error );
@@ -505,4 +514,76 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
     }
 }
 
+export async function notifyAdmin(subject: string, details: string) {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_PASS
+            }
+        });
 
+        await transporter.sendMail({
+            from: `"SystemAlert" <${process.env.GMAIL_USER}>`,
+            to: "sergio.matampros12@gmail.com",
+            subject: subject,
+            html: `
+<div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 20px auto; color: #333; border: 1px solid #efefef; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+    
+    <div style="background-color: #ffffff; padding: 30px 25px; border-bottom: 4px solid #ef4444; text-align: center;">
+        <h2 style="margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #888;">Admin Notification</h2>
+        <h1 style="margin: 10px 0 0 0; font-size: 24px; color: #1a1a1a; font-weight: 700;">🚨 Cancellation of Event</h1>
+    </div>
+
+    <div style="padding: 40px 35px; background-color: #ffffff;">
+        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5;">
+            Hello <strong>Ariel</strong>,
+        </p>
+        <p style="margin: 0 0 30px 0; font-size: 15px; color: #555; line-height: 1.6;">
+            A client has just cancelled their service. Here are the updated details:
+        </p>
+
+        <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border: 1px solid #f0f0f0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #777; font-size: 13px; width: 100px;">Client</td>
+                    <td style="padding: 8px 0; font-weight: 600; color: #1a1a1a;">
+                        ${details.split('</b>')[0].replace('<b>', '')}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #777; font-size: 13px;">Date</td>
+                    <td style="padding: 8px 0; font-weight: 600; color: #1a1a1a;">
+                        ${new Date().toLocaleDateString()}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #777; font-size: 13px;">Status</td>
+                    <td style="padding: 8px 0;">
+                        <span style="background-color: #ef444420; color: #ef4444; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 700; border: 1px solid #ef444440;">
+                            CANCELLED
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p style="margin: 30px 0 0 0; font-size: 14px; color: #888; text-align: center; font-style: italic;">
+            Please see the dashboard for more information.
+        </p>
+    </div>
+
+    <div style="background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #eee;">
+        <p style="margin: 0; font-size: 12px; color: #aaa; line-height: 1.4;">
+            &copy; 2026 Ariel's Tech Service. All rights reserved.<br>
+            This is an automated administrative alert.
+        </p>
+    </div>
+</div>
+`
+        });
+    }catch (error) {
+        console.log('error notifying admin:', error)
+    }
+}

@@ -100,6 +100,8 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                         <input type="hidden" name="selectedDate" value={selectedDate?.toISOString()} />
                         <input type="hidden" name="startTime" value={startTimeDisplay} />
                         <input type="hidden" name="endTime" value={endTimeDisplay} />
+                        <input type="hidden" name="clientIdentifier" value={clientIdentifier?.replace(/['"]+/g, '').trim()} />
+
 
                         <div className="space-y-8">
                             {[

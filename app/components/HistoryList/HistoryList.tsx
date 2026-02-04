@@ -29,7 +29,7 @@ export default async function HistoryList({ email}: {email: string}){
                                             {item.title}
                                         </h2>
                                         <p className='text-sm font-bold opacity-40 mt-2 uppercase tracking-widest'>
-                                            {item.date} <span className='mx-1'>•</span>{item.start}
+                                            {item.date} <span className='mx-1'>•</span>{item.start} - {item.finish}
                                         </p>
                                     </div>
                                 </div>

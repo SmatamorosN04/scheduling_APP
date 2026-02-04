@@ -101,16 +101,21 @@ export async function verifyCodeAction(identifier: string, code: string) {
 }
 
 export async function logoutClient() {
+     let isSucessFul = false
+
     try {
         const cookieStore = await cookies();
-
         cookieStore.delete('client_session');
+        isSucessFul = true
 
-        redirect('/');
 
-        return { success: true };
     } catch (error) {
         console.error("Logout Error:", error);
         return { success: false, error: "Failed to log out" };
     }
+    if(isSucessFul){
+        redirect('/clientLogin');
+    }
+
+
 }

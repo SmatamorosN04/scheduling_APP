@@ -45,24 +45,24 @@ export default function UserLoginForm() {
             router.push('/portal')
             router.refresh()
         } else {
-            setStatus('idle') // Reactiva el botón para intentar de nuevo
+            setStatus('idle')
             alert('Código inválido o expirado')
         }
     }
 
     return (
-        <div className='p-8 rounded-xl bg-white flex flex-col max-w-sm mx-auto shadow-lg'>
+        <div className='p-2 rounded-xl bg-white flex flex-col max-w-sm mx-auto shadow-lg'>
             <form onSubmit={step === 1 ? handleInitialLogin : handleVerifyCode}>
                 {step === 1 ? (
                     <div>
                         <label className='mb-3 block text-start font-bold uppercase text-xs tracking-widest'>
-                            Correo Electrónico
+                            Electronic Mail
                         </label>
                         <input
-                            type='email' // Cambiado a email para mejor validación nativa
+                            type='email'
                             required
                             className='w-full p-4 border-2 border-black rounded-lg mb-5 font-medium outline-none focus:bg-yellow-50'
-                            placeholder='ejemplo@correo.com'
+                            placeholder='example@email.com'
                             value={identifier}
                             onChange={(e) => setIdentifier(e.target.value)}
                         />
@@ -71,7 +71,7 @@ export default function UserLoginForm() {
                             disabled={status === 'loading'}
                             className='w-full bg-black text-white p-4 rounded-lg font-black uppercase hover:bg-gray-800 transition-all disabled:opacity-50'
                         >
-                            {status === 'loading' ? 'Enviando Código...' : 'Obtener Acceso'}
+                            {status === 'loading' ? 'Sending Code...' : 'Get Access'}
                         </button>
                     </div>
                 ) : (
@@ -80,11 +80,11 @@ export default function UserLoginForm() {
                             Verifica tu Email
                         </label>
                         <p className="text-[10px] text-gray-500 mb-4">
-                            Hemos enviado un código a: <br/><b>{identifier.toLowerCase()}</b>
+                           A code has send to: <br/><b>{identifier.toLowerCase()}</b>
                         </p>
                         <input
                             type='text'
-                            inputMode="numeric" // Teclado numérico en móviles
+                            inputMode="numeric"
                             required
                             maxLength={6}
                             className='w-full p-4 border-2 border-green-500 rounded-lg mb-5 font-black text-center text-3xl tracking-[0.3em] outline-none'
@@ -97,14 +97,14 @@ export default function UserLoginForm() {
                             disabled={status === 'loading'}
                             className='w-full bg-green-600 text-white p-4 rounded-lg font-black uppercase hover:bg-green-700 transition-all disabled:opacity-50'
                         >
-                            {status === 'loading' ? 'Verificando...' : 'Entrar al Portal'}
+                            {status === 'loading' ? 'Verifying...' : 'Get in to Portal'}
                         </button>
                         <button
                             type="button"
                             onClick={() => { setStep(1); setStatus('idle'); }}
-                            className="w-full mt-4 text-[10px] uppercase font-bold text-gray-400 hover:text-black"
+                            className="w-full mt-4 text-sm uppercase font-bold text-gray-400 hover:text-black underline-offset-auto"
                         >
-                            ¿Te equivocaste de correo? Volver
+                            ¿Wrong Email? Back
                         </button>
                     </div>
                 )}

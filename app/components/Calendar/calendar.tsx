@@ -55,7 +55,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
         <div className="h-[70vh] w-full bg-[#F2EFDF] rounded-3xl shadow-xl border border-gray-100 p-2 md:p-4">
             <Calendar
                 localizer={localizer}
-                events={events}
+                events={events.filter(event => event.status !== 'Cancelled')}
                 culture='en'
                 startAccessor="start"
                 endAccessor="end"

@@ -9,7 +9,7 @@ export default function CancelButton ({ appointmentId}: {appointmentId: string})
     const [isPending, setIsPending] = useState(false);
 
     const handleCancel = async () => {
-        if(!confirm('Are your sure cancellyour request ? ')) return;
+        if(!confirm('Are your sure cancell your request ? ')) return;
 
         setIsPending(true);
         try{
@@ -28,7 +28,7 @@ export default function CancelButton ({ appointmentId}: {appointmentId: string})
         <button
             onClick={handleCancel}
         disabled={isPending}
-            className={` px-4 py-2 rounded-xl border-2 border-black font-black text-sm uppercase italic hover:cursor-pointer transition-all ${isPending ? 'bg-gray-200 cursor-not-allowed' : 'bg-white shadow-md'} `}
+            className={` px-4 py-2 rounded-xl border border-black font-black text-sm uppercase italic hover:cursor-pointer transition-all ${isPending ? 'bg-gray-200 cursor-not-allowed' : 'bg-white shadow-md'} `}
         >
             {isPending ? 'Canceling...': 'Cancel request'}
         </button>
