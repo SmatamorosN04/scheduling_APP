@@ -15,22 +15,25 @@ export default function UserLoginForm() {
         e.preventDefault()
         setStatus('loading')
 
-        const cleanEmail = identifier.trim().toLowerCase();
+        const cleanInput = identifier.trim().toLowerCase();
 
-        if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-            alert('Por favor ingresa un correo electrónico válido')
+        const isEmail = cleanInput.includes('@');
+        const isPhone = /^\d{8}$/.test(cleanInput);
+
+        if (!isEmail && !isPhone) {
+            alert('Por favor ingresa un correo válido o un número de teléfono de 8 dígitos')
             setStatus('idle')
             return
         }
 
-        const result = await loginClient(cleanEmail)
+        const result = await loginClient(cleanInput)
 
         if (result.success) {
             setStep(2)
             setStatus('idle')
         } else {
             setStatus('idle')
-            alert('No se pudo enviar el correo. Revisa si es un destinatario autorizado.')
+            alert('No se pudo enviar el código. Verifica tus datos o el Sandbox de Twilio.')
         }
     }
 
@@ -38,8 +41,8 @@ export default function UserLoginForm() {
         e.preventDefault()
         setStatus('loading')
 
-        const cleanEmail = identifier.trim().toLowerCase();
-        const result = await verifyCodeAction(cleanEmail, verificationCode)
+        const cleanInput = identifier.trim().toLowerCase();
+        const result = await verifyCodeAction(cleanInput, verificationCode)
 
         if (result.success) {
             router.push('/portal')
@@ -56,10 +59,10 @@ export default function UserLoginForm() {
                 {step === 1 ? (
                     <div>
                         <label className='mb-3 block text-start font-bold uppercase text-xs tracking-widest'>
-                            Electronic Mail
+                            Electronic Mail or Phone Number
                         </label>
                         <input
-                            type='email'
+                            type='text'
                             required
                             className='w-full p-4 border-2 border-black rounded-lg mb-5 font-medium outline-none focus:bg-yellow-50'
                             placeholder='example@email.com'

@@ -4,7 +4,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
-export async function sendWhatsAppVerification(to: string, code: string) {
+export async function sendWhatsApp(to: string, code: string) {
     try {
         const message = await client.messages.create({
             from: 'whatsapp:+14155238886',

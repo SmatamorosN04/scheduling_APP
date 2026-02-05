@@ -5,17 +5,22 @@ import { cookies } from "next/headers";
 import { encrypt } from "@/lib/session";
 import {redirect} from "next/dist/client/components/redirect";
 import nodemailer from "nodemailer";
+import twilio from "twilio";
 
-export async function loginClient(email: string) {
+
+export async function loginClient(input: string) {
     try {
         const { db } = await connectToDatabase();
-        const cleanEmail = email.trim().toLowerCase();
+        const identifier = input.trim().toLowerCase();
+
+        const isEmail = identifier.includes('@');
+        const isPhone = /^\d{8}$/.test(identifier);
 
         await db.collection("clients").updateOne(
-            { email: cleanEmail },
+            { [isEmail ? 'email' : 'phone']: identifier },
             {
                 $setOnInsert: {
-                    email: cleanEmail,
+                    [isEmail ? 'email' : 'phone']: identifier,
                     createdAt: new Date(),
                     role: 'client'
                 }
@@ -26,10 +31,10 @@ export async function loginClient(email: string) {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
 
         await db.collection("verification_codes").updateOne(
-            { identifier: cleanEmail },
+            { identifier: identifier },
             {
                 $set: {
-                    identifier: cleanEmail,
+                    identifier: identifier,
                     code: code,
                     expiresAt: new Date(Date.now() + 10 * 60 * 1000)
                 }
@@ -37,34 +42,40 @@ export async function loginClient(email: string) {
             { upsert: true }
         );
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_PASS,
-            },
-        });
-        await transporter.sendMail({
-            from: `"Seguridad Portal" <${process.env.GMAIL_USER}>`,
-            to: cleanEmail,
-            subject: 'Your Access code for entry to your portal ',
-            html: `
-                <div style="font-family: sans-serif; text-align: center; border: 1px solid #eee; padding: 20px;">
-                    <h2>Código de Verificación</h2>
-                    <p>Use the next code to verification of your account</p>
-                    <h1 style="background: #f4f4f4; padding: 10px; display: inline-block; letter-spacing: 5px;">${code}</h1>
-                    <p style="font-size: 12px; color: #888;">Este código expira en 10 minutos.</p>
-                </div>
-            `,
-        });
+        if (isEmail) {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
+            });
+            await transporter.sendMail({
+                from: `"Seguridad Portal" <${process.env.GMAIL_USER}>`,
+                to: identifier,
+                subject: 'Your Access code',
+                html: `<div style="text-align:center;"><h2>Código: ${code}</h2></div>`,
+            });
+        }
+
+        if (isPhone) {
+            const accountSid = process.env.TWILIO_ACCOUNT_SID;
+            const authToken = process.env.TWILIO_AUTH_TOKEN;
+            const client = twilio(accountSid, authToken);
+
+            await client.messages.create({
+                from: 'whatsapp:+14155238886',
+                contentSid: 'HX229f5a04fd0510ce1b071852155d3e75',
+                contentVariables: JSON.stringify({ "1": code }),
+                to: 'whatsapp:+50587731532'
+            });
+
+            return { success: true };
+        }
 
         return { success: true };
     } catch (error) {
         console.error("Error en loginClient:", error);
-        return { success: false, error: "No se pudo enviar el correo" };
+        return { success: false, error: "No se pudo enviar el código" };
     }
 }
-
 
 export async function verifyCodeAction(identifier: string, code: string) {
     try {
@@ -72,8 +83,8 @@ export async function verifyCodeAction(identifier: string, code: string) {
         const db = client.db('scheduling_App');
 
         const record = await db.collection('verification_codes').findOne({
-            identifier,
-            code,
+            identifier: identifier,
+            code: code,
             expiresAt: { $gt: new Date() }
         });
 
@@ -81,14 +92,15 @@ export async function verifyCodeAction(identifier: string, code: string) {
             return { success: false, error: "Invalid or expired code" };
         }
 
-        await db.collection('verifications').deleteOne({ _id: record._id });
+        await db.collection('verification_codes').deleteOne({ _id: record._id });
 
         const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        const session = await encrypt({ email: identifier, expires });
+
+        const session = await encrypt({ user: identifier, expires });
 
         (await cookies()).set('client_session', session, {
             expires,
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
         });
@@ -99,7 +111,6 @@ export async function verifyCodeAction(identifier: string, code: string) {
         return { success: false, error: "Internal server error" };
     }
 }
-
 export async function logoutClient() {
      let isSucessFul = false
 
