@@ -1,112 +1,29 @@
-'use client'
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer/footer";
-import ServiceForm from "@/app/components/ServiceForm/ServiceForm";
-import {useSearchParams} from "next/dist/client/components/navigation";
-import {Suspense, useEffect, useState} from "react";
-import ArielCalendar from "@/app/components/Calendar/calendar";
-import {getAppointments} from "@/lib/actions";
+import {Suspense} from "react";
+import BookingContent from "@/app/components/BookingContent/BookingContent";
+import {decrypt} from "@/lib/session";
+import {cookies} from "next/dist/server/request/cookies";
 
 
 export const dynamic = 'force-dynamic';
 
-interface CalendarEvent {
-    id: string;
-    title: string;
-    start: Date;
-    end: Date;
-}
-
-function BookingContent() {
-    const searchParams = useSearchParams();
-    const serviceName = searchParams.get("service") || "Servicio ";
-    const[events, setEvents] = useState<CalendarEvent[]>([]);
-const [clientIdentifier, setClientIdentifier] = useState<string>("")
 
 
-    useEffect(() => {
-        async function fetchEvents() {
-            try {
-                const data = await getAppointments();
-                if (Array.isArray(data)) {
-                    setEvents(data);
-                } else {
-                    setEvents([]);
-                }
+export default async function Booking(){
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('client_session');
+    let clientIdentifier = "";
 
-                const cookies = document.cookie.split(';')
-                const sessionCookie = cookies.find(row => row.startsWith('client_session='));
+    if (sessionCookie) {
+        try {
+            const sessionData = await decrypt(sessionCookie.value) as any;
 
-                if (sessionCookie){
-                    const value = decodeURIComponent(sessionCookie.split('=')[1]);
-                    setClientIdentifier(value);
-                    console.log("value extracted from sessions Cookie", value)
-                }
-
-            } catch (error) {
-                console.error("Error loading events:", error);
-            }
+            clientIdentifier = sessionData?.user || sessionData?.email || sessionData?.identifier || "";
+        } catch (error) {
+            console.error("Error decrypting session on server:", error);
         }
-        fetchEvents();
-    }, []);
-
-    const [startDate, setStartDate] = useState<Date | null>(null);
-    const [finishDate, setFinishDate] = useState<Date | null>(null);
-    const [step, setStep] = useState(1);
-
-    const handleDateSelect = (start: Date, end: Date) => {
-        setStartDate(start);
-        setFinishDate(end)
-        setStep(2)
     }
-
-    return (
-        <div className="w-full h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-700">
-
-            <div className="flex-none mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600 mb-1 block">
-                        Step 0{step}
-                    </span>
-                    <h2 className="text-xl md:text-5xl font-black uppercase tracking-tighter italic leading-none text-black">
-                        {step === 1 ? "Select Date" : "Final Details"}
-                    </h2>
-                </div>
-                {step === 2 && (
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 border-l-2 border-gray-100 pl-4">
-                        {serviceName}
-                    </p>
-                )}
-            </div>
-
-            <div className="flex-1 min-h-0 w-full">
-                {step === 1 ? (
-                    <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
-                        <ArielCalendar
-                            events={events}
-                            isClientView={true}
-                            onDateSelect={handleDateSelect}
-                        />
-                    </div>
-                ) : (
-                    <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
-                            <ServiceForm
-                                key={clientIdentifier}
-                                serviceTitle={serviceName}
-                                selectedDate={startDate}
-                                endDate={finishDate}
-                                clientIdentifier={clientIdentifier}
-                            />
-
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-export default function Booking(){
-
     return (
         <div className='h-screen w-full flex flex-col bg-[#FDFCF7] overflow-hidden'>
             <Header />
@@ -118,7 +35,7 @@ export default function Booking(){
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading...</p>
                     </div>
                 }>
-                    <BookingContent />
+                    <BookingContent initialIdentifier={clientIdentifier} />
                 </Suspense>
             </main>
 

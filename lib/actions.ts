@@ -61,14 +61,14 @@ export async function createAppointment(formData: FormData) {
 
     const sessionData = await decrypt(session.value);
 
-
     if (!sessionData) {
         return { error: "Invalid or expired session" };
     }
 
     const userName = formData.get('name') as string;
     const service = formData.get('service') as string;
-    const userEmail = (sessionData.email as string || sessionData.identifier as string).toLowerCase().trim();
+    const userEmail = (sessionData.user as string || sessionData.email as string || sessionData.identifier as string);
+    const userPhone = (formData.get('phone') as string).replace(/\D/g, '');
 
     const mediaRaw = formData.get('media') as string;
     const mediaFiles = mediaRaw ? JSON.parse(mediaRaw) : [];
@@ -103,6 +103,14 @@ export async function createAppointment(formData: FormData) {
         });
 
         if (overlapping) return { error: "Tihs Hours are Occupied" };
+
+        const existingProfile = await db.collection('appointments').findOne({
+            clientEmail: userEmail
+        })
+        if (existingProfile && existingProfile.phone_number.replace(/\D/g, '') !== userPhone) {
+            return { error: "This email is already linked to another phone number." };
+        }
+
 
 
         const result =  await db.collection('appointments').insertOne({
@@ -325,15 +333,22 @@ export async function updateAppointment(id: string, formData: FormData) {
     }
 }
 
-export async function getClientHistory(clientEmail: string){
+export async function getClientHistory(identifier: string){
     try{
         const client = await clientPromise;
         const db = client.db('scheduling_App');
 
-        const normalizedEmail = clientEmail.toLowerCase().trim();
+        const normalizedIdentifier = identifier.toLowerCase().trim();
+
+        const cleanPhone = normalizedIdentifier.replace(/\D/g, '');
 
         const history = await db.collection('appointments')
-            .find({ clientEmail: normalizedEmail})
+            .find({
+                $or: [
+                    {clientEmail: normalizedIdentifier},
+                    {phone_number: cleanPhone}
+                ]
+            })
             .sort({ date: -1 })
             .toArray();
 

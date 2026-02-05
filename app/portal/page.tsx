@@ -16,9 +16,9 @@ export default async function Portal() {
     if (!sessionCookie) {
         return <div> Please, Log in to see your historical</div>
     }
-    const sessionData = await decrypt(sessionCookie.value) as { email?: string; identifier?: string } | null;
-    const email: string = sessionData?.email || sessionData?.identifier || '';
-
+    const sessionData = await decrypt(sessionCookie.value) as { user?: string,  email?: string; identifier?: string } | null;
+    console.log("Session Raw Data:", sessionData);
+    const email: string = sessionData?.user || sessionData?.email || sessionData?.identifier || '';
 
     if (!email) {
         return <div> Session invalid. Please log in again.</div>

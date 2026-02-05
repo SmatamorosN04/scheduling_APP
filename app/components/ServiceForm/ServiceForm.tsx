@@ -1,5 +1,5 @@
 'use client';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {createAppointment} from "@/lib/actions";
 import Link from "next/dist/client/link";
 import { UploadButton } from "@/lib/uploadthing";
@@ -16,6 +16,18 @@ interface ServiceFormProps {
 }
 
 export default function ServiceForm({serviceTitle, selectedDate, endDate, clientIdentifier}: ServiceFormProps){
+    const cleanId = useMemo(() => {
+        return (clientIdentifier || "").replace(/['"]+/g, '').trim();
+    }, [clientIdentifier]);
+
+    const isPhoneLogin = useMemo(() => {
+        return /^\+?\d+$/.test(cleanId) && cleanId.length > 5;
+    }, [cleanId]);
+
+    const isEmailLogin = useMemo(() => {
+        return cleanId.includes('@');
+    }, [cleanId]);
+
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isPending, setIsPending] = useState(false);
@@ -107,19 +119,14 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                             {[
                                 { label: "Full Name", name: "name", type: "text", placeholder: "e.g. Sergio Matamoros" },
                                 { label: "Complete Address", name: "address", type: "text", placeholder: "Street, number, colony..." },
-                                { label: "Phone Number", name: "phone", type: "tel", placeholder: "+505 0000 0000" }
+                                { label: "Phone Number", name: "phone", type: "tel", placeholder: "+505 0000 0000" },
+                                { label: "Email Address", name: "email", type: "email", placeholder: 'youremail@email.com'}
                             ]
                                 .filter((input) => {
-                                    const cleanId = clientIdentifier?.replace(/['"]+/g, '').trim();
-                                    const isPhoneLogin = cleanId && !cleanId.includes('@') && /^\d+$/.test(cleanId);
-
-                                    if (input.name === "phone" && isPhoneLogin) {
-                                        console.log("Ocultando input de teléfono para:", cleanId);
-                                        return false;
-                                    }
+                                    if (input.name === "phone" && isPhoneLogin) return false;
+                                    if (input.name === "email" && isEmailLogin) return false;
 
                                     return true;
-
                                 })
                                 .map((input) => (
                                 <div key={input.name} className="relative group">
