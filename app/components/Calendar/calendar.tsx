@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
 import CustomEvent from "@/app/components/Events/events";
-import 'moment/locale/es';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import {enUS} from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import moment from 'moment-timezone';
 
 interface CalendarProps {
     events: any[];
@@ -13,11 +13,16 @@ interface CalendarProps {
     onSelectEvent?: (event: any) => void;
 }
 
-moment.tz.setDefault('America/Managua');
-const localizer = momentLocalizer(moment);
+const locales = {
+    'en-US': enUS,
+};
 
-moment.updateLocale('es-ni', {
-    week: { dow: 1, doy: 4 }
+const localizer = dateFnsLocalizer({
+    format,
+    parse,
+    startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 0 }),
+    getDay,
+    locales,
 });
 
 export default function ArielCalendar({ events, isClientView = false, onDateSelect, onSelectEvent }: CalendarProps) {
@@ -56,7 +61,7 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
             <Calendar
                 localizer={localizer}
                 events={events.filter(event => event.status !== 'Cancelled')}
-                culture='en'
+                culture='en-US'
                 startAccessor="start"
                 endAccessor="end"
                 step={60}

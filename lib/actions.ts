@@ -11,6 +11,8 @@ import {redirect} from "next/dist/client/components/redirect";
 
 
 
+import twilio from "twilio";
+
 export async function getAppointments() {
     try {
         const client = await clientPromise;
@@ -40,7 +42,8 @@ export async function getAppointments() {
                 status: app.status,
                 rawDate: app.date,
                 rawStart: app.start,
-                rawFinish: app.finish
+                rawFinish: app.finish,
+                evidence: app.evidence || []
             };
         });
     } catch (error) {
@@ -67,8 +70,13 @@ export async function createAppointment(formData: FormData) {
 
     const userName = formData.get('name') as string;
     const service = formData.get('service') as string;
-    const userEmail = (sessionData.user as string || sessionData.email as string || sessionData.identifier as string);
-    const userPhone = (formData.get('phone') as string).replace(/\D/g, '');
+    const rawId = (sessionData.user as string || sessionData.email as string || sessionData.identifier as string || "").replace(/['"]+/g, '').trim();
+
+    const isEmailLogin = rawId.includes('@');
+
+
+    const finalEmail = isEmailLogin ? rawId : (formData.get('email') as string || "");
+    const finalPhone = isEmailLogin ? (formData.get('phone') as string || "") : rawId;
 
     const mediaRaw = formData.get('media') as string;
     const mediaFiles = mediaRaw ? JSON.parse(mediaRaw) : [];
@@ -105,9 +113,9 @@ export async function createAppointment(formData: FormData) {
         if (overlapping) return { error: "Tihs Hours are Occupied" };
 
         const existingProfile = await db.collection('appointments').findOne({
-            clientEmail: userEmail
+            clientEmail: finalEmail
         })
-        if (existingProfile && existingProfile.phone_number.replace(/\D/g, '') !== userPhone) {
+        if (existingProfile && existingProfile.phone_number.replace(/\D/g, '') !== finalPhone) {
             return { error: "This email is already linked to another phone number." };
         }
 
@@ -123,8 +131,9 @@ export async function createAppointment(formData: FormData) {
             clientName: formData.get('name'),
             direction: formData.get('address'),
             title: service,
-            clientEmail: userEmail,
-            phone_number: formData.get('phone'),
+            clientEmail: finalEmail,
+            phone_number: finalPhone,
+            clientIdentifier: rawId,
             evidence: mediaFiles,
             color_hex: SERVICE_COLORS[formData.get('service') as string] || "#39b82a",
             start_num: sH,
@@ -133,7 +142,7 @@ export async function createAppointment(formData: FormData) {
             sent1h: false
         });
 
-          if (result.insertedId && userEmail){
+          if (result.insertedId && finalEmail.includes('@')){
               try{
                   const transporter = nodemailer.createTransport({
                       service: 'gmail',
@@ -144,7 +153,7 @@ export async function createAppointment(formData: FormData) {
                   });
                   await transporter.sendMail({
                       from: `"Ariel's Scheduling App" <${process.env.GMAIL_USER}>`,
-                      to: userEmail,
+                      to: finalEmail,
                       subject: "Ariel's Scheduling App",
                       html: `
                       <div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
@@ -200,6 +209,34 @@ export async function createAppointment(formData: FormData) {
                     console.error('error sending create notification ')
               }
           }
+        if (result.insertedId && finalPhone) {
+            try {
+                const accountSid = process.env.TWILIO_ACCOUNT_SID;
+                const authToken = process.env.TWILIO_AUTH_TOKEN;
+                const client = twilio(accountSid, authToken);
+
+                const messageBody =
+                    `Hello *${userName}*! 👋\n\n` +
+                    `We have successfully received your service request for *${service}*.\n\n` +
+                    `📅 *Date:* ${cleanDate}\n` +
+                    `⏰ *Time Slot:* ${startFormatted}\n` +
+                    `📍 *Status:* PENDING\n\n` +
+                    `No further action is required at this time. Our team will contact you shortly 
+                    to confirm your appointment. Thank you for choosing Ariel's Tech Service!`;
+
+                client.messages
+                    .create({
+                        from: 'whatsapp:+14155238886',
+                        body:  messageBody,
+                        to: 'whatsapp:+50587731532'
+                    })
+                    .then((message: any) => console.log(message.sid))
+
+
+            } catch (wsError) {
+                console.error('Error en Twilio:', wsError);
+            }
+        }
 
 
         revalidatePath('/dashboard');
@@ -237,6 +274,9 @@ try{
 export async function updateAppointment(id: string, formData: FormData) {
     const client = await clientPromise;
     const db = client.db('scheduling_App');
+
+    const currentAppt = await db.collection('appointments').findOne({ _id: new ObjectId(id)});
+    if (!currentAppt) return {error: "Appointment not found"}
 
     const service = formData.get('service') as string;
     const name = formData.get('name') as string;
@@ -325,6 +365,24 @@ export async function updateAppointment(id: string, formData: FormData) {
                 $unset: fieldsToUnset
             }
         );
+
+        const dateChanged = currentAppt.date !== rawSelectedDate;
+        const timeChanged = currentAppt.start_num !== sH;
+
+
+        const clientIdentifier = currentAppt.clientEmail;
+        const isEmail = clientIdentifier?.includes('@');
+
+        if ((dateChanged || timeChanged) && isEmail) {
+            await notifyClientReschedule(
+                clientIdentifier,
+                service,
+                currentAppt.date,
+                rawSelectedDate,
+                startTimeStr
+            );
+        }
+
 
         revalidatePath('/dashboard');
         return { success: true };
@@ -461,8 +519,8 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
 
         const statusWithNotifications = ['Confirmed', 'On-Route', 'Cancelled'];
 
-        const targetEmail = currentAppointment.clientEmail || currentAppointment.userEmail;
-        const targetName = currentAppointment.userName || "Customer";
+        const targetEmail = currentAppointment.clientEmail;
+        const targetName = currentAppointment.clientName ;
 
         if (statusWithNotifications.includes(nextStatus) && targetEmail) {
             try {
@@ -534,6 +592,31 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
                 console.log(" Email sent successfully to:", targetEmail);
             } catch (mailError) {
                 console.error(" Nodemailer failed:", mailError);
+            }
+            try {
+                //changed
+                const accountSid = process.env.TWILIO_ACCOUNT_SID;
+                const authToken = process.env.TWILIO_AUTH_TOKEN;
+                const clientTwilio = twilio(accountSid, authToken);
+
+                const messageBody =
+                    `Update: *${nextStatus.toUpperCase()}* 📢\n\n` +
+                    `Hello *${targetName}*,\n` +
+                    `The status of your *${currentAppointment.title || 'service'}* request has been updated to: *${nextStatus}*.\n\n` +
+                    `📅 *Date:* ${currentAppointment.date}\n` +
+                    `⏰ *Time:* ${currentAppointment.start}\n\n` +
+                    `Thank you for your patience!`;
+
+                clientTwilio.messages
+                    .create({
+                        from: 'whatsapp:+14155238886',
+                        body: messageBody,
+                        to: `whatsapp:+50587731532`
+                    })
+                    .then((m: any) => console.log("📱 WhatsApp Update Sent:", m.sid))
+
+            } catch (wsError) {
+                console.error('Twilio Error:', wsError);
             }
         }
         revalidatePath('/admin');
@@ -618,3 +701,46 @@ export async function notifyAdmin(subject: string, details: string) {
     }
 }
 
+export async function notifyClientReschedule(to: string, service: string, oldDate: string, newDate: string, newTime: string) {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_PASS
+            }
+        });
+
+        await transporter.sendMail({
+            from: `"Ariel Tech" <${process.env.GMAIL_USER}>`,
+            to: to,
+            subject: ` Appointment Update: ${service}`,
+            html: `
+<div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 20px; overflow: hidden;">
+    <div style="background-color: #000; padding: 40px; text-align: center;">
+        <h2 style="color: #ea580c; font-size: 10px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 10px;">Schedule Update</h2>
+        <h1 style="color: white; font-size: 24px; text-transform: uppercase; margin: 0; italic; font-weight: 900;">Your appointment has been moved</h1>
+    </div>
+    <div style="padding: 40px; background-color: #fff;">
+        <p style="font-size: 14px; color: #666; line-height: 1.6;">Hello, we have updated the time for your <strong>${service}</strong> service to ensure the best attention.</p>
+        
+        <div style="margin: 30px 0; border-left: 4px solid #ea580c; padding-left: 20px;">
+            <p style="font-size: 12px; color: #999; text-transform: uppercase; margin-bottom: 5px;">New Schedule</p>
+            <p style="font-size: 18px; font-weight: bold; color: #000; margin: 0;">${newDate}</p>
+            <p style="font-size: 18px; font-weight: bold; color: #ea580c; margin: 0;">${newTime}:00</p>
+        </div>
+
+        <p style="font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Previous date: ${oldDate}</p>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; text-align: center;">
+            <p style="font-size: 10px; font-weight: bold; color: #000; text-transform: uppercase;">Ariel Tech • Secure Booking System</p>
+        </div>
+    </div>
+</div>
+`
+        });
+        console.log(`✅ Notification sent to ${to}`);
+    } catch (error) {
+        console.error('Error notifying client:', error);
+    }
+}

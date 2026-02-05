@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import {deleteAppointment, getAppointments, updateAppointment} from "@/lib/actions";
 import Header from "@/app/components/header/header";
+import { format } from "date-fns";
 import ArielCalendar from "@/app/components/Calendar/calendar";
-import moment from "moment";
 import StatusController from "@/app/components/StatusController/StatusController";
+import VisualEvidence from "@/app/components/VisualEvidence/VisualEvidence";
 
 export default function Dashboard() {
     const [events, setEvents] = useState<any[]>([]);
@@ -25,6 +26,7 @@ export default function Dashboard() {
         endTime: "",
         status: ""
     })
+
 
     const Services = [
         'Field analysis',
@@ -53,17 +55,24 @@ export default function Dashboard() {
         setSelectedEvent(event);
         setIsSidebarOpen(true);
         setIsEditing(false);
+        const start = new Date(event.start);
+        const end = new Date(event.end);
 
         setEditForm({
             service: event.title || "nothing fetched ",
             name: event.clientName || "",
             address: event.direction || "",
             phone: event.phone_number || "",
-            date: moment(event.start).format('YYYY-MM-DD'),
-            startTime: moment(event.start).format('H'),
-            endTime: moment(event.finish).format('H'),
+            date: format(start, 'yyyy-MM-dd'),
+            startTime: format(start, 'H'),
+            endTime: format(end, 'H'),
             status: event.status || 'pending'
         })
+    };
+
+    const formatTimeRange = (start: Date, end: Date) => {
+        const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+        return `${new Intl.DateTimeFormat('en-US', options).format(new Date(start))} — ${new Intl.DateTimeFormat('en-US', options).format(new Date(end))}`;
     };
 
     const handleDelete = async () => {
@@ -141,14 +150,7 @@ export default function Dashboard() {
             <Header />
 
             <main className='flex-1 flex flex-col items-center justify-start p-4 pt-28 pb-10'>
-              {/*  <div className='w-full max-w-6xl mb-8'>
-                    <p className='text-xs font-black uppercase text-black/40 -tracking-tight mb-4 ml-2'>
-                        Operational Pipeline
-                    </p>
-                    <TaskStatusView
-                    appointments={events}
-                    />
-                </div>*/}
+
 
                 <div className='w-full max-w-6xl bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
                     {loading ? (
@@ -199,8 +201,7 @@ export default function Dashboard() {
                                         </div>
                                         <div className="pt-4">
                                             <span className="text-[10px] font-black bg-black text-white px-4 py-2 rounded-full uppercase tracking-tighter">
-                                                {moment(selectedEvent.start).format('hh:mm A')} — {moment(selectedEvent.end).format('hh:mm A')}
-                                            </span>
+{formatTimeRange(selectedEvent.start, selectedEvent.end)}                                            </span>
 
                                         </div>
                                     </div>
@@ -215,6 +216,8 @@ export default function Dashboard() {
                                         setIsSidebarOpen(false);
                                     }}
                                 />
+
+                                <VisualEvidence evidence={selectedEvent.evidence} />
                                 <button
                                     onClick={() => setIsEditing(true)}
                                     className="w-full py-4 mb-4 mt-5 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-800 transition-all active:scale-95 shadow-lg shadow-black/10"
