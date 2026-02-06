@@ -76,7 +76,7 @@ export default function BookingContent({ initialIdentifier }: { initialIdentifie
                         />
                     </div>
                 ) : (
-                    <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 overflow-hidden">
+                    <div className="h-full bg-white rounded-[40px] border border-black/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.02)] p-4 ">
                         <ServiceForm
                             key={clientIdentifier}
                             serviceTitle={serviceName}
