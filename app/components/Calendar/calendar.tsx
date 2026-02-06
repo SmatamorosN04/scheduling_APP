@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
 import CustomEvent from "@/app/components/Events/events";
-import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { format, parse, startOfWeek, getDay, isBefore, startOfDay } from 'date-fns';
 import {enUS} from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
@@ -89,6 +89,14 @@ export default function ArielCalendar({ events, isClientView = false, onDateSele
                 onSelectSlot={(slotInfo) => {
                     if (!isClientView) return;
                     if (slotInfo.start.getDay() === 0) return;
+
+                    const today = startOfDay(new Date());
+                    const selectedDay = startOfDay(slotInfo.start);
+
+                    if (isBefore(selectedDay, today)) {
+                        alert("Please select a date from today onwards.");
+                        return;
+                    }
 
                     if (currentView === Views.MONTH) {
                         setDate(slotInfo.start);
