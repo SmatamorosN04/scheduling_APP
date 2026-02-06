@@ -7,9 +7,7 @@ export async function GET(request: Request) {
     const isTest = searchParams.get('test') === 'true';
     const authHeader = request.headers.get('authorization');
 
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && !isTest) {
-        return new NextResponse('Unauthorized', { status: 401 });
-    }
+
 
     try {
         const client = await clientPromise;
