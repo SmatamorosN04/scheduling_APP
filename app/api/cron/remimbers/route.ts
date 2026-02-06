@@ -59,12 +59,11 @@ export async function GET(request: Request) {
             auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
         });
 
-        const subjectEmoji = isTest ? "🧪 TEST:" : "📅";
 
         await transporter.sendMail({
             from: `"Ariel's Scheduling System" <${process.env.GMAIL_USER}>`,
-            to: process.env.GMAIL_USER,
-            subject: `${subjectEmoji} Weekly Schedule: ${jobs.length} Appointments Found`,
+            to: 'sergio.matampros12@gmail.com',
+            subject: ` Weekly Schedule: ${jobs.length} Appointments Found`,
             html: `
                 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; color: #333;">
                     <h2 style="color: #1a1a1a; border-bottom: 2px solid #eee; padding-bottom: 10px;">Weekly Service Briefing</h2>
