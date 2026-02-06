@@ -168,8 +168,13 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                     </div>
                                 </div>
                             </div>
-                            <div className="
-                    /* Móvil: Flotante al fondo */
+
+
+                            {error && (
+                                <p className="text-[8px] font-bold text-red-500 uppercase text-center">{error}</p>
+                            )}
+                        </form>
+                        <div className="
                     fixed bottom-0 left-0 right-0 p-6
                     bg-gradient-to-t from-white via-white to-transparent
 
@@ -177,22 +182,17 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                     md:sticky md:bottom-0 md:p-16 md:pt-8 md:bg-white md:border-t md:border-gray-50
                     z-50
                 ">
-                                <button
-                                    form="service-booking-form"
-                                    type="submit"
-                                    disabled={isPending}
-                                    className={`w-full text-white font-black py-5 md:py-8 rounded-2xl md:rounded-[2.5rem] uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-[13px] transition-all shadow-2xl ${
-                                        isPending ? 'bg-gray-400' : 'bg-black hover:bg-orange-600 active:scale-95'
-                                    }`}
-                                >
-                                    {isPending ? "Syncing..." : "Confirm & Request"}
-                                </button>
-                            </div>
-
-                            {error && (
-                                <p className="text-[8px] font-bold text-red-500 uppercase text-center">{error}</p>
-                            )}
-                        </form>
+                            <button
+                                form="service-booking-form"
+                                type="submit"
+                                disabled={isPending}
+                                className={`w-full text-white font-black py-5 md:py-8 rounded-2xl md:rounded-[2.5rem] uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-[13px] transition-all shadow-2xl ${
+                                    isPending ? 'bg-gray-400' : 'bg-black hover:bg-orange-600 active:scale-95'
+                                }`}
+                            >
+                                {isPending ? "Syncing..." : "Confirm & Request"}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
