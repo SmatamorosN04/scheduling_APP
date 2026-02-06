@@ -271,6 +271,7 @@ try{
     }
 }
 
+
 export async function updateAppointment(id: string, formData: FormData) {
     const client = await clientPromise;
     const db = client.db('scheduling_App');
@@ -472,6 +473,7 @@ export async function cancelAppointmentByClient(id: string){
         return {success: false, message: "Intern server Error"}
     }
 }
+
 
 export async function  updateAppointmentStatus(id: string, nextStatus: AppointmentStatus){
 
@@ -713,6 +715,25 @@ export async function notifyAdmin(subject: string, details: string) {
     }
 }
 
+export async function getExistingClientData(identifier: string) {
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+
+    const existing = await db.collection('appointments').findOne(
+        { $or: [{ email: identifier }, { phone_number: identifier }] },
+        { sort: { _id: -1 } } // Traer el más reciente
+    );
+
+    if (existing) {
+        return {
+            name: existing.clientName || '',
+            address: existing.direction || '',
+            phone: existing.phone_number || '',
+            email: existing.clientEmail || ''
+        };
+    }
+    return null;
+}
 export async function saveService(formData: FormData) {
     const client = await clientPromise;
     const db = client.db('scheduling_App');

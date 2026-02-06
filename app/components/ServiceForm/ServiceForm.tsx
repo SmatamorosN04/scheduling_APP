@@ -1,6 +1,6 @@
 'use client';
-import React, {useMemo, useState} from 'react';
-import {createAppointment} from "@/lib/actions";
+import React, {useEffect, useMemo, useState} from 'react';
+import {createAppointment, getExistingClientData} from "@/lib/actions";
 import Link from "next/dist/client/link";
 import { UploadButton } from "@/lib/uploadthing";
 
@@ -38,6 +38,22 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
         phone: '',
         email: ''
     })
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!cleanId) return;
+
+            const data = await getExistingClientData(cleanId);
+            if (data) {
+                setFormValues({
+                    name: data.name,
+                    address: data.address,
+                    phone: data.phone,
+                    email: data.email
+                });
+            }
+        };
+        fetchUserData();
+    }, [cleanId]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value} = e.target;
@@ -100,6 +116,12 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                             action={async (formData: FormData) => {
                                 setIsPending(true);
                                 setError(null);
+                                if (isEmailLogin && !formData.get('email')) {
+                                    formData.append('email', cleanId);
+                                }
+                                if (isPhoneLogin && !formData.get('phone')) {
+                                    formData.append('phone', cleanId);
+                                }
                                 formData.append('media', JSON.stringify(mediaFiles))
 
                                 const result = await createAppointment(formData);
@@ -124,7 +146,8 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                     { label: "Full Name", name: "name", type: "text", placeholder: "Name" },
                                     { label: "Address", name: "address", type: "text", placeholder: "Location", maxLength: 150 },
                                     { label: "Contact", name: "phone", type: "tel", placeholder: "Phone" },
-                                    { label: "Email", name: "email", type: "email", placeholder: "Email" }
+                                    { label: "Email", name: "email", type: "email", placeholder: "Email" },
+                                    { label: 'Details', name: 'details', type: 'text', placeholder: 'describe details', maxLength: 300}
                                 ]
                                     .filter((input) => {
                                         if (input.name === "phone" && isPhoneLogin) return false;
