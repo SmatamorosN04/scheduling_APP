@@ -296,8 +296,12 @@ export async function updateAppointment(id: string, formData: FormData) {
         const standarizedDate = new Date()
         standarizedDate.setHours(standarizedDate.getHours() - 6)
 
-        const overlapping = await db.collection('appointments').findOne({
+
+        if (status !== 'Cancelled'){ const overlapping = await db.collection('appointments').findOne({
             date: rawSelectedDate,
+            status: {
+                $in: ['Confirmed', 'In-Progress', 'pending']
+            },
             _id: { $ne: new ObjectId(id) },
             $and: [
                 { start_num: { $lt: eH } },
@@ -305,9 +309,11 @@ export async function updateAppointment(id: string, formData: FormData) {
             ]
         });
 
-        if (overlapping) {
-            return { error: "This hour is reserved by another client" };
+            if (overlapping) {
+                return { error: `The slot ${startTimeStr} - ${finishTimeStr} is already taken by another appointment.` };
+            }
         }
+
         const fieldsToUpdate: any = {
             title: service,
             clientName: name,
@@ -319,8 +325,9 @@ export async function updateAppointment(id: string, formData: FormData) {
             start_num: sH,
             finish_num: eH,
             updatedAt: standarizedDate,
-            sent24h: false,
-            sent1h: false
+            sent24h: currentAppt.date !== rawSelectedDate || currentAppt.start_num !== sH ? false : currentAppt.sent24h,
+            sent1h: currentAppt.date !== rawSelectedDate || currentAppt.start_num !== sH ? false : currentAppt.sent1h
+
         };
 
         const fieldsToUnset: any = {};

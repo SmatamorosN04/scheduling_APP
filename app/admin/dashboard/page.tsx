@@ -78,7 +78,7 @@ export default function Dashboard() {
     const handleDelete = async () => {
         if (!selectedEvent) return;
 
-        const confirmDelete = confirm(`¿Deseas eliminar la cita de ${selectedEvent.clientName}?`);
+        const confirmDelete = confirm(`You want delete the schedule of ${selectedEvent.clientName}?`);
         if (confirmDelete) {
             const result = await deleteAppointment(selectedEvent.id);
             if (result && result.success) {
@@ -132,11 +132,10 @@ export default function Dashboard() {
                 }));
                 await loadEvents();
                 triggerRefresh();
-                alert('¡Cita actualizada con éxito!');
+                alert('¡Update successfully');
                 setIsEditing(false);
                 setIsSidebarOpen(false);
 
-                await loadEvents();
             } else {
                 alert(result?.error || "Ocurrió un error inesperado al actualizar");
             }
