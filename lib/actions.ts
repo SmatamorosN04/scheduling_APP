@@ -171,7 +171,11 @@ export async function createAppointment(formData: FormData) {
         <p style="font-size: 15px; color: #555; line-height: 1.5;">
             We have successfully received your service request for <strong>${service}</strong>. Our team is currently reviewing the details and will get back to you shortly.
         </p>
-
+            <div style="text-align: center; margin: 30px 0;">
+            <span style="background-color: #fff9db; color: #856404; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #ffeeba;">
+                STATUS: PENDING
+            </span>
+        </div>
         <div style="margin: 25px 0; background-color: #ffffff; border: 1px solid #eee; border-radius: 6px;">
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
@@ -185,11 +189,7 @@ export async function createAppointment(formData: FormData) {
             </table>
         </div>
 
-        <div style="text-align: center; margin: 30px 0;">
-            <span style="background-color: #fff9db; color: #856404; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #ffeeba;">
-                STATUS: PENDING
-            </span>
-        </div>
+        
 
         <p style="font-size: 14px; color: #777; text-align: center; font-style: italic;">
             No further action is required at this time. You will receive a notification once your appointment has been officially confirmed.
@@ -546,49 +546,54 @@ export async function  updateAppointmentStatus(id: string, nextStatus: Appointme
                     to: targetEmail,
                     subject: `Update: Appointment ${nextStatus}`,
                     html: `
-<div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 20px auto; color: #333; border: 1px solid #efefef; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-    
-    <div style="background-color: #ffffff; padding: 30px 25px; border-bottom: 4px solid ${color}; text-align: center;">
-        <h2 style="margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #888;">Service Update</h2>
-        <h1 style="margin: 10px 0 0 0; font-size: 24px; color: #1a1a1a; font-weight: 700;">${nextStatus}</h1>
+<div style="font-family: 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+    <div style="background-color: #f8f9fa; padding: 25px; border-bottom: 4px solid ${color};">
+        <h1 style="margin: 0; font-size: 20px; color: #1a1a1a; letter-spacing: 0.5px;">
+            Service Status Update
+        </h1>
+        <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">ID: ${id.toString().slice(-6).toUpperCase()}</p>
     </div>
 
-    <div style="padding: 40px 35px; background-color: #ffffff;">
-        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.5;">
-            Hello <strong>${targetName}</strong>,
+    <div style="padding: 30px;">
+        <p style="font-size: 16px; line-height: 1.5;">
+            Dear <strong>${targetName}</strong>,
         </p>
-        <p style="margin: 0 0 30px 0; font-size: 15px; color: #555; line-height: 1.6;">
-            We are writing to inform you that the status of your service request has been updated. Below are the current details of your appointment:
+        <p style="font-size: 15px; color: #555; line-height: 1.5;">
+            We are writing to inform you that your service request for <strong>${currentAppointment.title || 'Service'}</strong> has been updated to:
         </p>
 
-        <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; border: 1px solid #f0f0f0;">
+        <div style="text-align: center; margin: 20px 0;">
+            <span style="background-color: ${color}15; color: ${color}; padding: 10px 24px; border-radius: 20px; font-size: 14px; font-weight: 700; border: 1px solid ${color}30; text-transform: uppercase;">
+                ${nextStatus}
+            </span>
+        </div>
+
+        <div style="margin: 25px 0; background-color: #ffffff; border: 1px solid #eee; border-radius: 6px;">
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
-                    <td style="padding: 8px 0; color: #777; font-size: 13px; width: 100px;">Service</td>
-                    <td style="padding: 8px 0; font-weight: 600; color: #1a1a1a;">${currentAppointment.service}</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eee; color: #777; font-size: 13px; text-transform: uppercase;">Service</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: 600;">${currentAppointment.title || 'N/A'}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px 0; color: #777; font-size: 13px;">Date</td>
-                    <td style="padding: 8px 0; font-weight: 600; color: #1a1a1a;">${currentAppointment.date}</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eee; color: #777; font-size: 13px; text-transform: uppercase;">Date</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid #eee; font-weight: 600;">${currentAppointment.date}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px 0; color: #777; font-size: 13px;">Status</td>
-                    <td style="padding: 8px 0;">
-                        <span style="background-color: ${color}20; color: ${color}; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 700; border: 1px solid ${color}40;">
-                            ${nextStatus.toUpperCase()}
-                        </span>
-                    </td>
+                    <td style="padding: 12px 15px; color: #777; font-size: 13px; text-transform: uppercase;">Time</td>
+                    <td style="padding: 12px 15px; font-weight: 600;">${currentAppointment.start} — ${currentAppointment.finish}</td>
                 </tr>
             </table>
         </div>
 
-        <p style="margin: 30px 0 0 0; font-size: 14px; color: #888; text-align: center; font-style: italic;">
-            If you have any questions regarding this update, please feel free to contact us.
+        <p style="font-size: 14px; color: #777; text-align: center; font-style: italic;">
+            ${nextStatus === 'Cancelled'
+                        ? 'If you have questions about this cancellation, please contact us.'
+                        : 'No further action is required. We will keep you updated on any further changes.'}
         </p>
     </div>
 
-    <div style="background-color: #f8f9fa; padding: 25px; text-align: center; border-top: 1px solid #eee;">
-        <p style="margin: 0; font-size: 12px; color: #aaa; line-height: 1.4;">
+    <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+        <p style="margin: 0; font-size: 12px; color: #999;">
             &copy; 2026 Ariel's Tech Service. All rights reserved.<br>
             This is an automated message, please do not reply directly to this email.
         </p>
