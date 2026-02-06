@@ -122,7 +122,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                             <div className="space-y-6 md:space-y-10">
                                 {[
                                     { label: "Full Name", name: "name", type: "text", placeholder: "Name" },
-                                    { label: "Address", name: "address", type: "text", placeholder: "Location" },
+                                    { label: "Address", name: "address", type: "text", placeholder: "Location", maxLength: 150 },
                                     { label: "Contact", name: "phone", type: "tel", placeholder: "Phone" },
                                     { label: "Email", name: "email", type: "email", placeholder: "Email" }
                                 ]
@@ -141,6 +141,7 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                                 type={input.type}
                                                 name={input.name}
                                                 placeholder={input.placeholder}
+                                                maxLength={input.maxLength}
                                                 value={formValues[input.name as keyof typeof formValues]}
                                                 onChange={handleInputChange}
                                                 className="w-full bg-transparent border-b-2 border-gray-100 text-black focus:border-black py-2 md:py-3 outline-none transition-all text-sm md:text-lg font-bold"
