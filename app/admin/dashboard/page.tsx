@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import {deleteAppointment, getAppointments, updateAppointment} from "@/lib/actions";
+import {deleteAppointment, getAppointments, getServices, updateAppointment} from "@/lib/actions";
 import Header from "@/app/components/header/header";
 import { format } from "date-fns";
 import ArielCalendar from "@/app/components/Calendar/calendar";
 import StatusController from "@/app/components/StatusController/StatusController";
 import VisualEvidence from "@/app/components/VisualEvidence/VisualEvidence";
+import EditServicesModal from "@/app/components/EditServiceModal/EditServicesModal";
 
 export default function Dashboard() {
     const [events, setEvents] = useState<any[]>([]);
@@ -28,18 +29,19 @@ export default function Dashboard() {
     })
 
 
-    const Services = [
-        'Field analysis',
-        'Instalation',
-        'Maintenance'
-    ];
+    const [dynamicServices, setDynamicServices] = useState<any[]>([]);
 
 
 
     const loadEvents = async () => {
         try {
+            setLoading(true);
             const fetchedEvents = await getAppointments();
             setEvents(fetchedEvents);
+
+            const servicesData = await getServices();
+            setDynamicServices(servicesData);
+
         } catch (error) {
             console.error("Error loading events:", error);
         } finally {
@@ -150,8 +152,13 @@ export default function Dashboard() {
 
             <main className='flex-1 flex flex-col items-center justify-start p-4 pt-28 pb-10'>
 
+                <div className='mb-4'>
+                    <h2 className="text-xl font-black uppercase italic tracking-tighter">Service Catalog</h2>
+                    <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Create, Edit or Archive your services</p>
+                </div>
+                <EditServicesModal services={dynamicServices} />
 
-                <div className='w-full max-w-6xl bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
+                <div className='w-full max-w-6xl mt-4 bg-white p-4 md:p-8 rounded-[40px] shadow-sm border border-black/5'>
                     {loading ? (
                         <div className='h-[70vh] flex items-center justify-center text-black font-black uppercase tracking-widest'>
                             Loading Agenda...
@@ -227,22 +234,7 @@ export default function Dashboard() {
                         ) : (
                             <div className="space-y-5 animate-in fade-in slide-in-from-left-4 duration-300">
                                 <div>
-                                    <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">Service</label>
-                                  <select
-                                  className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black focus:bg-white outline-none transition-all font-bold text-sm mt-1"
-                                  value={editForm.service}
-                                  onChange={(e) => setEditForm({...editForm, service: e.target.value})}
-                                  >
-                                      {Services.map((servi) => (
-                                          <option
-                                              className="w-full p-4 rounded-2xl border-2 border-black/5 bg-gray-50 focus:border-black
-                                              focus:bg-white outline-none transition-all font-bold text-sm mt-1"
-                                              key={servi} value={servi}>
-                                              {servi}
-                                          </option>
-                                      ))}
-                                  </select>
-
+                                    
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black uppercase text-black/40 tracking-widest ml-2">Client Name</label>

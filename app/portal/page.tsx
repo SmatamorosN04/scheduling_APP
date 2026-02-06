@@ -3,68 +3,74 @@ import Footer from "@/app/components/footer/footer";
 import Link from "next/link";
 import ServiceCard from "@/app/components/ServiceCard/ServiceCard";
 import LogoutClientButton from "@/app/components/LogoutClientButton/LogoutCLientButton";
-import {logoutClient} from "@/lib/AuthActions";
-import {Suspense} from "react";
+import { logoutClient } from "@/lib/AuthActions";
+import { Suspense } from "react";
 import HistoryList from "@/app/components/HistoryList/HistoryList";
-import {cookies} from "next/dist/server/request/cookies";
-import {decrypt} from "@/lib/session";
+import { cookies } from "next/headers";
+import { decrypt } from "@/lib/session";
+import clientPromise from "@/lib/mongodb";
+import {seedServices} from "@/lib/seedService";
+import SeedButton from "@/app/components/addButton";
 
 export default async function Portal() {
- const coockieStore = await cookies();
- const sessionCookie = coockieStore.get('client_session');
+    const coockieStore = await cookies();
+    const sessionCookie = coockieStore.get('client_session');
 
     if (!sessionCookie) {
-        return <div> Please, Log in to see your historical</div>
+        return <div className="p-10 text-center font-bold">Please, Log in to see your historical</div>
     }
-    const sessionData = await decrypt(sessionCookie.value) as { user?: string,  email?: string; identifier?: string } | null;
-    console.log("Session Raw Data:", sessionData);
+
+    const sessionData = await decrypt(sessionCookie.value) as { user?: string, email?: string; identifier?: string } | null;
     const email: string = sessionData?.user || sessionData?.email || sessionData?.identifier || '';
 
     if (!email) {
-        return <div> Session invalid. Please log in again.</div>
+        return <div className="p-10 text-center font-bold">Session invalid. Please log in again.</div>
     }
+
+    // --- CONEXIÓN A DB PARA SERVICIOS ---
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+
+    // Solo traemos servicios con 'active: true' (Soft Delete filter)
+    const services = await db.collection('services')
+        .find({ active: true })
+        .toArray();
 
     return (
         <div className='min-h-screen flex flex-col bg-[#F2EFDF] text-black'>
             <Header />
             <div className='w-30'>
                 <LogoutClientButton
-                text={'logOut'}
-                color={'bg-white'}
-                action={logoutClient}
-            /></div>
+                    text={'logOut'}
+                    color={'bg-white'}
+                    action={logoutClient}
+                />
+            </div>
 
             <main className="grow max-w-7xl mx-auto w-full px-6 py-12">
-
                 <header className="mb-8">
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-black/40">Request Service</span>
-                    <h2 className="text-4xl font-black uppercase italic tracking-tighter">Availables Services</h2>
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter">Available Services</h2>
                 </header>
-
                 <div className="grid grid-cols-1 mb-16 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
-                    <Link href={`/clients/booking?service=${encodeURIComponent('Field Analysis')}`} className="h-full">
-                        <ServiceCard
-                            image={'/campo.png'}
-                            title={'Field analysis'}
-                            description={'Evaluation of physical and technical conditions, electrical infrastructure, and space.'}
-                        />
-                    </Link>
 
-                    <Link href={`/clients/booking?service=${encodeURIComponent('Installation')}`} className="h-full">
-                        <ServiceCard
-                            image={'/instalation.png'}
-                            title={'Installation'}
-                            description={'Professional mounting, refrigerant line connection, and safety testing.'}
-                        />
-                    </Link>
-
-                    <Link href={`/clients/booking?service=${encodeURIComponent('Maintenance')}`} className="h-full">
-                        <ServiceCard
-                            image={'/maintenance.png'}
-                            title={'Maintenance'}
-                            description={'Cleaning, refrigerant checking, and electrical inspection to extend equipment lifespan.'}
-                        />
-                    </Link>
+                    {services.length > 0 ? (
+                        services.map((service) => (
+                            <Link
+                                key={service._id.toString()}
+                                href={`/clients/booking?service=${encodeURIComponent(service.title)}`}
+                                className="h-full"
+                            >
+                                <ServiceCard
+                                    image={service.image}
+                                    title={service.title}
+                                    description={service.description}
+                                />
+                            </Link>
+                        ))
+                    ) : (
+                        <p className="italic opacity-50">No services available at the moment.</p>
+                    )}
                 </div>
 
                 <header className='mb-8'>

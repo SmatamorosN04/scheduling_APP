@@ -713,6 +713,57 @@ export async function notifyAdmin(subject: string, details: string) {
     }
 }
 
+export async function saveService(formData: FormData) {
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+
+    const id = formData.get('id') as string;
+    const serviceData = {
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        image: formData.get('image') as string,
+        duration_hours: parseInt(formData.get('duration') as string) || 1,
+        color_hex: formData.get('color') as string || "#39b82a",
+        active: true
+    };
+
+    if (id) {
+        await db.collection('services').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: serviceData }
+        );
+    } else {
+        await db.collection('services').insertOne(serviceData);
+    }
+
+    revalidatePath('/admin/services');
+    revalidatePath('/clients');
+}
+
+export async function deleteService(id: string) {
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+
+    await db.collection('services').updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { active: false, deletedAt: new Date() } }
+    );
+
+    revalidatePath('/admin/services');
+    revalidatePath('/clients');
+}
+
+export async function getServices() {
+    const client = await clientPromise;
+    const db = client.db('scheduling_App');
+
+    // Traemos todos los servicios para que el Admin los vea todos
+    const services = await db.collection('services').find({}).toArray();
+
+    // Importante: Convertir los ObjectIds a strings para evitar errores de serialización
+    return JSON.parse(JSON.stringify(services));
+}
+
 export async function notifyClientReschedule(to: string, service: string, oldDate: string, newDate: string, newTime: string) {
     try {
         const transporter = nodemailer.createTransport({
