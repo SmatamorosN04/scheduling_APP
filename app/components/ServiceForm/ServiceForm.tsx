@@ -32,6 +32,20 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
     const [error, setError] = useState<string | null>(null);
     const [isPending, setIsPending] = useState(false);
     const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
+    const [formValues, setFormValues] = useState({
+        name: '',
+        address: '',
+        phone: '',
+        email: ''
+    })
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value} = e.target;
+        setFormValues(prev => ({ ...prev, [name]: value
+        }))
+
+    }
+
     const startTimeDisplay = selectedDate ?  selectedDate.getHours(): '0';
     const endTimeDisplay = endDate ? endDate.getHours() : "0";
 
@@ -78,7 +92,6 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                 )}
             </div>
 
-            {/* FORM CONTAINER */}
             <div className="flex-1 relative flex flex-col min-h-0 bg-white">
                 <div className="flex-1 overflow-y-auto">
                     <div className="w-full max-w-md mx-auto p-6 md:p-16">
@@ -88,7 +101,9 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                 setIsPending(true);
                                 setError(null);
                                 formData.append('media', JSON.stringify(mediaFiles))
+
                                 const result = await createAppointment(formData);
+
                                 if (result && result.error) {
                                     setError(result.error);
                                     setIsPending(false);
@@ -126,6 +141,8 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                                 type={input.type}
                                                 name={input.name}
                                                 placeholder={input.placeholder}
+                                                value={formValues[input.name as keyof typeof formValues]}
+                                                onChange={handleInputChange}
                                                 className="w-full bg-transparent border-b-2 border-gray-100 text-black focus:border-black py-2 md:py-3 outline-none transition-all text-sm md:text-lg font-bold"
                                             />
                                         </div>
