@@ -1,0 +1,58 @@
+{
+  "header": {
+    "login": "Iniciar Sesión",
+    "dashboard": "Panel de Control",
+    "myAppointments": "Mis Citas",
+    "logout": "Cerrar Sesión",
+    "back": "Volver"
+  },
+  "login": {
+    "title": "Bienvenido, Ariel",
+    "adminAccess": "Acceso de Administrador",
+    "clientAccess": "Portal del Cliente",
+    "emailPlaceholder": "correo@ejemplo.com",
+    "button": "Entrar"
+  },
+  "portal": {
+    "welcome": "Hola de nuevo",
+    "title": "Mis Citas",
+    "noAppointments": "No tienes citas programadas.",
+    "bookingButton": "Nueva Cita",
+    "status": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmada",
+      "onRoute": "En Camino",
+      "inProgress": "En Progreso",
+      "completed": "Completada",
+      "cancelled": "Cancelada"
+    }
+  },
+  "booking": {
+    "title": "Agendar Servicio",
+    "personalInfo": "Información Personal",
+    "name": "Nombre Completo",
+    "phone": "Teléfono",
+    "address": "Dirección de Residencia",
+    "serviceDetails": "Detalles del Servicio",
+    "date": "Fecha",
+    "time": "Hora",
+    "submit": "Confirmar Reserva"
+  },
+  "admin": {
+    "stats": {
+      "total": "Total Citas",
+      "today": "Citas de Hoy",
+      "revenue": "Ingresos Estimados"
+    },
+    "actions": {
+      "reschedule": "Reprogramar",
+      "cancel": "Cancelar Cita",
+      "sendReminder": "Enviar Recordatorio"
+    }
+  },
+  "common": {
+    "error": "Algo salió mal",
+    "success": "Operación exitosa",
+    "loading": "Cargando..."
+  }
+}

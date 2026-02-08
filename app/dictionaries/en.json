@@ -1,0 +1,58 @@
+{
+  "header": {
+    "login": "Login",
+    "dashboard": "Dashboard",
+    "myAppointments": "My Appointments",
+    "logout": "Logout",
+    "back": "Back"
+  },
+  "login": {
+    "title": "Welcome, Ariel",
+    "adminAccess": "Admin Access",
+    "clientAccess": "Client Portal",
+    "emailPlaceholder": "email@example.com",
+    "button": "Sign In"
+  },
+  "portal": {
+    "welcome": "Welcome back",
+    "title": "My Appointments",
+    "noAppointments": "You have no scheduled appointments.",
+    "bookingButton": "New Appointment",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "onRoute": "On Route",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "booking": {
+    "title": "Book a Service",
+    "personalInfo": "Personal Information",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "address": "Home Address",
+    "serviceDetails": "Service Details",
+    "date": "Date",
+    "time": "Time",
+    "submit": "Confirm Booking"
+  },
+  "admin": {
+    "stats": {
+      "total": "Total Appointments",
+      "today": "Today's Appointments",
+      "revenue": "Estimated Revenue"
+    },
+    "actions": {
+      "reschedule": "Reschedule",
+      "cancel": "Cancel Appointment",
+      "sendReminder": "Send Reminder"
+    }
+  },
+  "common": {
+    "error": "Something went wrong",
+    "success": "Operation successful",
+    "loading": "Loading..."
+  }
+}
