@@ -178,18 +178,27 @@ export default function ServiceForm({serviceTitle, selectedDate, endDate, client
                                     </label>
                                     <div className="p-4 md:p-6 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/30">
                                         <UploadButton
-                                            endpoint='serviceImageUploader'
-                                            onClientUploadComplete={(res) => {
-                                                if (!res) return;
-                                                const newFiles: MediaFile[] = res.map(file => {
-                                                    const data = file.serverData as any;
-                                                    return { id: data.internalId, type: data.type };
-                                                });
-                                                setMediaFiles((prev) => [...prev, ...newFiles]);
+                                            endpoint="serviceImageUploader"
+                                            onBeforeUploadBegin={(files) => {
+                                                if (files.length > 3) {
+                                                    alert("Error: Max media is 3 ");
+                                                    return [];
+                                                }
+                                                return files;
                                             }}
-                                            appearance={{
-                                                button: "bg-black text-white font-black text-[8px] md:text-[9px] uppercase tracking-widest px-4 py-2 rounded-lg w-full",
-                                                allowedContent: "hidden"
+                                            onClientUploadComplete={(res) => {
+                                                console.log("Archivos subidos:", res);
+                                                alert("¡Subida exitosa!");
+                                            }}
+                                            onUploadError={(error: Error) => {
+                                                alert(`Error de subida: ${error.message}`);
+                                            }}
+                                            content={{
+                                                button({ ready }) {
+                                                    if (ready) return "Subir Archivos (Máx 3)";
+                                                    return "Preparando...";
+                                                },
+                                                allowedContent: "Imágenes (3) o Video (1)",
                                             }}
                                         />
 
